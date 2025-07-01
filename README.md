@@ -1,3 +1,9 @@
 # QuarkCompiler
+This is a simple little fun project I am working on to learn more about parsers and the JVM. The idea is to make a tiny but usable language that compiles and emits JVM bytecode (.class file).
 
-# NOTE: Can break anytime
+# How it works ?
+The parser is generated using  [ANTLR](https://www.antlr.org/) . u can find the grammer in the [Quark.g4](/src/Quark.g4) file . The tree walking is done in java classes while using the [ASM](https://asm.ow2.io/) library to generate the jvm bytecode .
+
+# Usage
+Open the project in IntelliJ and add all the JARs from the [jars](jars/) folder to the classpath. Then run the code while passing the filepath to the `.quark` file . Here we use test.quark. 
+<br>Remember IntelliJ runs the code from the root path so make sure the file path is correct . It will generate a  `filename.class` file in the root folder itself , run it with the JVM. `($ java filename)` 
