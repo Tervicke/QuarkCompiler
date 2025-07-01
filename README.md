@@ -7,3 +7,4 @@ The parser is generated using  [ANTLR](https://www.antlr.org/) . u can find the 
 # Usage
 Open the project in IntelliJ and add all the JARs from the [jars](jars/) folder to the classpath. Then run the code while passing the filepath to the `.quark` file . Here we use test.quark. 
 <br>Remember IntelliJ runs the code from the root path so make sure the file path is correct . It will generate a  `filename.class` file in the root folder itself , run it with the JVM. `($ java filename)` 
+<br> See the [test.quark](quarks) file for examples

@@ -1,3 +1,5 @@
-let a = 10
-let b = a * a * a
+let a = 14
+let b = a + a
+let c = a * a
 print(b)
+print(c)
