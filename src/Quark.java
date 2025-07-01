@@ -47,13 +47,12 @@ public class Quark extends QuarkBaseVisitor<Integer>{
     @Override
     public Integer visitAssigstat(QuarkParser.AssigstatContext ctx) {
         String id = ctx.ID().getText();
-        int value = visit(ctx.expr());
+        visit(ctx.expr());
         //convert this to java bytecode
-        mv.visitLdcInsn(value);
         lastSlot++; //use the next slot
         mv.visitVarInsn(Opcodes.ISTORE,lastSlot);
         memory.put(id , lastSlot);
-        return value;
+        return 0;
     }
 
     @Override
@@ -95,10 +94,13 @@ public class Quark extends QuarkBaseVisitor<Integer>{
     @Override
     public Integer visitAtom(QuarkParser.AtomContext ctx) {
         if(ctx.INT() != null){
-            return Integer.parseInt(ctx.INT().getText());
+            int value = Integer.parseInt(ctx.INT().getText());
+            mv.visitLdcInsn(value);
+            return 0;
         }else if(ctx.ID() != null){
             String id = ctx.ID().getText();
             if( memory.containsKey(id)){
+                mv.visitVarInsn(Opcodes.ILOAD,memory.get(id));
                 return memory.get(id);
             }
             throw new RuntimeException("Not recognized: " + ctx.ID());
@@ -112,16 +114,19 @@ public class Quark extends QuarkBaseVisitor<Integer>{
         if(ctx.expr() == null){
             throw new RuntimeException("expr in ctx null");
         }
-        int value = visit(ctx.expr());
-        System.out.println(value);
-        return value;
+        //replace with the jvm instruction to load the print class
+        mv.visitFieldInsn(Opcodes.GETSTATIC,"java/lang/System","out","Ljava/io/PrintStream;");
+        visit(ctx.expr());
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,"java/io/PrintStream","println","(I)V");
+        //System.out.println(value);
+        return 0;
     }
 
     public static void main(String[]args) throws IOException {
         CharStream input;
         String filename = "";
         if(args.length >= 1){
-            filename = "src/" + args[0];
+            filename = args[0];
             Path filepath = Paths.get(filename);
             input = CharStreams.fromPath(filepath);
         }else{
@@ -159,8 +164,10 @@ public class Quark extends QuarkBaseVisitor<Integer>{
         cw.visitEnd();
         byte[] bytecode = cw.toByteArray();
         if(args.length >= 1){
-            Files.write(Paths.get("src/test.class"), bytecode);
-            System.out.println("generated the test.class file");
+            String inputFile = args[0];
+            String classFile = inputFile.replace(".quark",".class");
+            System.out.println("generated the " + classFile + " file");
+            Files.write(Paths.get(classFile),bytecode);
         }
     }
 }

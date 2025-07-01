@@ -1,2 +1,4 @@
-let a = 15
-let b = a
+let a = 20
+let b = a + 10
+print(a)
+print(b)
