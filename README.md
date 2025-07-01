@@ -1,3 +1,3 @@
 # QuarkCompiler
 
-# NOTE: Can bread anytime
+# NOTE: Can break anytime
