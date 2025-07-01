@@ -1,5 +1,6 @@
-let a = 14
-let b = a + a
-let c = a * a
+string str = "helloworld"
+print(str)
+int a = 10
+int b = a + 15
 print(b)
-print(c)
+int c = str + a

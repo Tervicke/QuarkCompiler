@@ -18,8 +18,10 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Quark extends QuarkBaseVisitor<Integer>{
+public class Quark extends QuarkBaseVisitor<String>{
     Map<String,Integer> memory = new HashMap<>(); //this will store the id to the slot
+    Map<String,String> types = new HashMap<>();
+
     int lastSlot = 0;
     private final ClassWriter cw;
     private final MethodVisitor mv;
@@ -30,12 +32,7 @@ public class Quark extends QuarkBaseVisitor<Integer>{
     }
 
     @Override
-    public Integer visitProg(QuarkParser.ProgContext ctx) {
-        return super.visitProg(ctx);
-    }
-
-    @Override
-    public Integer visitStat(QuarkParser.StatContext ctx) {
+    public String visitStat(QuarkParser.StatContext ctx) {
         if (ctx.assigstat() != null) {
             return visit(ctx.assigstat());
         } else if (ctx.printstat() != null) {
@@ -45,72 +42,86 @@ public class Quark extends QuarkBaseVisitor<Integer>{
     }
 
     @Override
-    public Integer visitAssigstat(QuarkParser.AssigstatContext ctx) {
+    public String visitAssigstat(QuarkParser.AssigstatContext ctx) {
         String id = ctx.ID().getText();
-        visit(ctx.expr());
+        String type = visit(ctx.expr());
         //convert this to java bytecode
         lastSlot++; //use the next slot
-        mv.visitVarInsn(Opcodes.ISTORE,lastSlot);
+        if(type.equals("int")){
+            mv.visitVarInsn(Opcodes.ISTORE,lastSlot);
+        }else if(type.equals("string")){
+            mv.visitVarInsn(Opcodes.ASTORE,lastSlot);
+        }
         memory.put(id , lastSlot);
-        return 0;
+        types.put(id , ctx.TYPE().getText());
+        return type;
     }
 
     @Override
-    public Integer visitExpr(QuarkParser.ExprContext ctx) {
+    public String visitExpr(QuarkParser.ExprContext ctx) {
         return visit(ctx.addexpr());
     }
 
     @Override
-    public Integer visitAddexpr(QuarkParser.AddexprContext ctx) {
+    public String visitAddexpr(QuarkParser.AddexprContext ctx) {
         if(ctx.getChildCount() == 1){
             return visit(ctx.mulexpr());
         }
-        //boolean is used to see if there exists the left side
-        boolean left = false;
-        if(ctx.addexpr() != null){
-            left = true;
-            //will push the first value
-            visit(ctx.addexpr());
-        }
-        //will push the normal value on the stack
-        visit(ctx.mulexpr());
+        String type1 = visit(ctx.addexpr());
+        String type2 = visit(ctx.mulexpr());
         String op = ctx.getChild(1).getText();
-        if(op.equals("+") && left){
-            System.out.println("adding");
-            mv.visitInsn(Opcodes.IADD);
-        }if(op.equals("-") && left){
-            mv.visitInsn(Opcodes.ISUB);
+        if(type1.equals(type2) && type1.equals("int")){
+            if(op.equals("+")){
+                mv.visitInsn(Opcodes.IADD);
+            }if(op.equals("-")){
+                mv.visitInsn(Opcodes.ISUB);
+            }
+            return "int";
         }
-        return 0;
+        throw new RuntimeException("cannot " + type1 + " " + op + " " + type2);
     }
 
     @Override
-    public Integer visitMulexpr(QuarkParser.MulexprContext ctx) {
+    public String visitMulexpr(QuarkParser.MulexprContext ctx) {
         if(ctx.getChildCount() == 1){
             return visit(ctx.atom());
         }
-        visit(ctx.mulexpr());
-        visit(ctx.atom());
+        String type1 = visit(ctx.mulexpr());
+        String type2 = visit(ctx.atom());
         String op = ctx.getChild(1).getText();
         if(op.equals("*")){
             mv.visitInsn(Opcodes.IMUL);
         }else{
             mv.visitInsn(Opcodes.IDIV);
         }
-        return 0;
+        if(type1.equals(type2)) {
+            return type1;
+        }
+        throw new RuntimeException("cannot " + type1 + " " + op + " " + type2);
     }
 
     @Override
-    public Integer visitAtom(QuarkParser.AtomContext ctx) {
+    public String visitAtom(QuarkParser.AtomContext ctx) {
         if(ctx.INT() != null){
             int value = Integer.parseInt(ctx.INT().getText());
             mv.visitLdcInsn(value);
-            return 0;
-        }else if(ctx.ID() != null){
+            return "int";
+        }
+        if(ctx.STRING() != null){
+            String str = ctx.STRING().getText();
+            str = str.substring(1,str.length() - 1);
+            mv.visitLdcInsn(str);
+            return "string";
+        }
+        else if(ctx.ID() != null){
             String id = ctx.ID().getText();
             if( memory.containsKey(id)){
-                mv.visitVarInsn(Opcodes.ILOAD,memory.get(id));
-                return memory.get(id);
+                if(types.get(id).equals("int")){
+                    mv.visitVarInsn(Opcodes.ILOAD,memory.get(id));
+                }else if(types.get(id).equals("string")){
+                    mv.visitVarInsn(Opcodes.ALOAD,memory.get(id));
+                }
+                return types.get(id);
             }
             throw new RuntimeException("Not recognized: " + ctx.ID());
         }else{
@@ -119,16 +130,20 @@ public class Quark extends QuarkBaseVisitor<Integer>{
     }
 
     @Override
-    public Integer visitPrintstat(QuarkParser.PrintstatContext ctx) {
+    public String visitPrintstat(QuarkParser.PrintstatContext ctx) {
         if(ctx.expr() == null){
             throw new RuntimeException("expr in ctx null");
         }
         //replace with the jvm instruction to load the print class
         mv.visitFieldInsn(Opcodes.GETSTATIC,"java/lang/System","out","Ljava/io/PrintStream;");
-        visit(ctx.expr());
-        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,"java/io/PrintStream","println","(I)V");
+        String type = visit(ctx.expr());
+        if(type.equals("int")){
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,"java/io/PrintStream","println","(I)V");
+        }else if(type.equals("string")){
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,"java/io/PrintStream","println","(Ljava/lang/Object;)V");
+        }
         //System.out.println(value);
-        return 0;
+        return type;
     }
 
     public static void main(String[]args) throws IOException {

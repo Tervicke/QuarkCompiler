@@ -9,7 +9,7 @@ stat
 | print=printstat NEWLINE
 ;
 
-assigstat : 'let' ID '=' expr ;
+assigstat : TYPE ID '=' expr ;
 printstat : 'print' '(' expr ')' ;
 
 expr: addexpr;
@@ -24,13 +24,18 @@ mulexpr : mulexpr ( '*' | '/') atom
 
 atom : INT
 | ID
+| STRING
 | '(' expr ')'
 | '[' expr ']'
 | '{' expr '}'
 ;
 
 //lexer rules
+TYPE
+    : 'int'
+    | 'string' ;
 ID : [a-zA-Z]+ ;
 INT : [0-9]+ ;
 NEWLINE : '\r'?'\n' ;
 WS : [ \t]+ -> skip ;
+STRING : '"' (~["\\] | '\\' .)* '"' ;
