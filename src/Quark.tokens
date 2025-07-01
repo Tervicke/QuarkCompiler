@@ -16,6 +16,7 @@ INT=15
 NEWLINE=16
 WS=17
 STRING=18
+LineComment=19
 '='=1
 'print'=2
 '('=3

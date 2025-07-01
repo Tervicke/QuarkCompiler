@@ -7,6 +7,7 @@ prog: stat+ ;
 stat
 : assig=assigstat NEWLINE
 | print=printstat NEWLINE
+| LineComment
 ;
 
 assigstat : TYPE ID '=' expr ;
@@ -39,3 +40,6 @@ INT : [0-9]+ ;
 NEWLINE : '\r'?'\n' ;
 WS : [ \t]+ -> skip ;
 STRING : '"' (~["\\] | '\\' .)* '"' ;
+LineComment
+    : '//' ~( '\r' | '\n' )* NEWLINE -> skip
+    ;
