@@ -65,16 +65,23 @@ public class Quark extends QuarkBaseVisitor<Integer>{
         if(ctx.getChildCount() == 1){
             return visit(ctx.mulexpr());
         }
-        int left;
-        if (ctx.addexpr() == null) left = 0;
-        else left = visit(ctx.addexpr());
-
-        int right = visit(ctx.mulexpr());
-        String op = ctx.getChild(1).getText();
-        if(op.equals("+")){
-            return left + right;
+        //boolean is used to see if there exists the left side
+        boolean left = false;
+        if(ctx.addexpr() != null){
+            left = true;
+            //will push the first value
+            visit(ctx.addexpr());
         }
-        return left - right;
+        //will push the normal value on the stack
+        visit(ctx.mulexpr());
+        String op = ctx.getChild(1).getText();
+        if(op.equals("+") && left){
+            System.out.println("adding");
+            mv.visitInsn(Opcodes.IADD);
+        }if(op.equals("-") && left){
+            mv.visitInsn(Opcodes.ISUB);
+        }
+        return 0;
     }
 
     @Override
@@ -82,13 +89,15 @@ public class Quark extends QuarkBaseVisitor<Integer>{
         if(ctx.getChildCount() == 1){
             return visit(ctx.atom());
         }
-        int left = visit(ctx.mulexpr());
-        int right = visit(ctx.atom());
+        visit(ctx.mulexpr());
+        visit(ctx.atom());
         String op = ctx.getChild(1).getText();
         if(op.equals("*")){
-            return left * right;
+            mv.visitInsn(Opcodes.IMUL);
+        }else{
+            mv.visitInsn(Opcodes.IDIV);
         }
-        return left / right;
+        return 0;
     }
 
     @Override
