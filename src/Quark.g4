@@ -10,11 +10,13 @@ stat
 | LineComment
 ;
 
-assigstat : TYPE ID '=' expr ;
-printstat : 'print' '(' expr ')' ;
+assigstat : TYPE ID '=' ( expr) ;
+printstat : 'print' '(' (expr) ')' ;
 
-expr: addexpr;
+expr
+    : equalityexpr;
 
+equalityexpr : addexpr  (('==' | '!=' ) addexpr )* ;
 addexpr : addexpr ( '+' | '-') mulexpr
 | mulexpr
 ;
@@ -34,7 +36,8 @@ atom : INT
 //lexer rules
 TYPE
     : 'int'
-    | 'string' ;
+    | 'string'
+    | 'bool' ;
 ID : [a-zA-Z]+ ;
 INT : [0-9]+ ;
 NEWLINE : '\r'?'\n' ;

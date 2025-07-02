@@ -57,6 +57,16 @@ public interface QuarkListener extends ParseTreeListener {
 	 */
 	void exitExpr(QuarkParser.ExprContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link QuarkParser#equalityexpr}.
+	 * @param ctx the parse tree
+	 */
+	void enterEqualityexpr(QuarkParser.EqualityexprContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link QuarkParser#equalityexpr}.
+	 * @param ctx the parse tree
+	 */
+	void exitEqualityexpr(QuarkParser.EqualityexprContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link QuarkParser#addexpr}.
 	 * @param ctx the parse tree
 	 */

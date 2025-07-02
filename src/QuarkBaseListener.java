@@ -76,6 +76,18 @@ public class QuarkBaseListener implements QuarkListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterEqualityexpr(QuarkParser.EqualityexprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitEqualityexpr(QuarkParser.EqualityexprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterAddexpr(QuarkParser.AddexprContext ctx) { }
 	/**
 	 * {@inheritDoc}

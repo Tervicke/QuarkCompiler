@@ -52,6 +52,13 @@ public class QuarkBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements 
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
+	@Override public T visitEqualityexpr(QuarkParser.EqualityexprContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
 	@Override public T visitAddexpr(QuarkParser.AddexprContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
