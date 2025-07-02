@@ -1,11 +1,4 @@
-//hello this is a comment
-//strings can used by using the str datatype
-string str = "helloworld"
-//u can use print() to print the value on the string
-print(str)
-int a = 10
-int b = a + 15
-print(b)
-//this will return an error since str + int cannot be added
-int c = "helloworld"
+bool a = 10 == 10
+bool b = a
+bool c = (b == a)
 print(c)
