@@ -44,9 +44,13 @@ public class Quark extends QuarkBaseVisitor<String>{
     @Override
     public String visitAssigstat(QuarkParser.AssigstatContext ctx) {
         String id = ctx.ID().getText();
+        String definedType = ctx.TYPE().getText();
         String type = visit(ctx.expr());
         //convert this to java bytecode
         lastSlot++; //use the next slot
+        if(!type.equals(definedType)){
+            throw new RuntimeException("cannot assign " + type + " to an " + definedType);
+        }
         if(type.equals("int")){
             mv.visitVarInsn(Opcodes.ISTORE,lastSlot);
         }else if(type.equals("string")){
@@ -193,6 +197,6 @@ public class Quark extends QuarkBaseVisitor<String>{
             System.out.println("generated the " + classFile + " file");
             Files.write(Paths.get(classFile),bytecode);
         }
+        System.out.println(visitor.types);
     }
 }
-

@@ -7,4 +7,5 @@ int a = 10
 int b = a + 15
 print(b)
 //this will return an error since str + int cannot be added
-int c = str + a
+int c = "helloworld"
+print(c)
