@@ -1,13 +1,18 @@
 grammar Quark;
 
 //parser grammer
-prog: stat+ ;
+prog: stat+
+    | ifstatement
+    ;
 
+ifstatement: 'if' '(' equalityexpr* ')' block ;
+block: '{' stat* '}' ;
 
 stat
 : assig=assigstat NEWLINE
 | print=printstat NEWLINE
 | LineComment
+| NEWLINE
 ;
 
 assigstat : TYPE ID '=' ( expr) ;

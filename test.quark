@@ -1,4 +1,4 @@
-bool a = 10 == 10
-bool b = a
-bool c = (b == a)
-print(c)
+int x = 5
+if(x == 5){
+    print(x)
+}
