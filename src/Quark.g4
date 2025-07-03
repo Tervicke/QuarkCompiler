@@ -28,7 +28,7 @@ addexpr : addexpr ( '+' | '-') mulexpr
 | mulexpr
 ;
 
-mulexpr : mulexpr ( '*' | '/') atom
+mulexpr : mulexpr ( '*' | '/' | '%' ) atom
 | atom
 ;
 

@@ -1,3 +1,2 @@
-int x = 5
-bool y = x == 6
-print(y)
+int x = 9 % 2
+print(x)

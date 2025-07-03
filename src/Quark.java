@@ -27,13 +27,15 @@ public class Quark extends QuarkBaseVisitor<TypedValue>{
             "+",Opcodes.IADD,
             "-", Opcodes.ISUB,
             "*", Opcodes.IMUL,
-            "/", Opcodes.IDIV
+            "/", Opcodes.IDIV,
+            "%",Opcodes.IREM
     );
     private final Map<String, BiFunction<Integer, Integer, Integer>> intOps = Map.of(
             "+", (a, b) -> a + b,
             "-", (a, b) -> a - b,
             "*", (a, b) -> a * b,
-            "/", (a, b) -> a / b
+            "/", (a, b) -> a / b,
+            "%",(a,b) -> a % b
     );
 
     public Quark(ClassWriter cw, MethodVisitor mv) {
