@@ -189,7 +189,7 @@ public class Quark extends QuarkBaseVisitor<TypedValue>{
         String op = ctx.getChild(1).getText();
 
         if(type1.type != type2.type && type1.type == TypedValue.Type.INT){
-            throw new RuntimeException("cannot " + type1 + " " + op + " " + type2);
+            throw new RuntimeException("cannot " + TypedValue.typeString(type1.type) + " " + op + " " + TypedValue.typeString(type2.type));
         }
         //push the operation onto the stack
         //possible notifies whether we can calculate the values of type1 and type2 (none of them are returned as null
