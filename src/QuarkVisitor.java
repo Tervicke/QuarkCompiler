@@ -58,6 +58,12 @@ public interface QuarkVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitEqualityexpr(QuarkParser.EqualityexprContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link QuarkParser#relationalexpr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitRelationalexpr(QuarkParser.RelationalexprContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link QuarkParser#addexpr}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

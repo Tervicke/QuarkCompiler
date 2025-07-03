@@ -12,7 +12,7 @@ stat
 
 ;
 
-ifstatement: 'if' '(' equalityexpr+ ')' block ;
+ifstatement: 'if' '(' expr ')' block ;
 block: '{' stat* '}' ;
 
 assigstat : TYPE ID '=' ( expr) ;
@@ -21,7 +21,9 @@ printstat : 'print' '(' (expr) ')' ;
 expr
     : equalityexpr;
 
-equalityexpr : left=addexpr  (('==' | '!=' ) right=addexpr )* ;
+equalityexpr    : relationalexpr (('==' | '!=') relationalexpr)* ;
+relationalexpr  : addexpr (('<' | '<=' | '>' | '>=') addexpr)* ;
+
 addexpr : addexpr ( '+' | '-') mulexpr
 | mulexpr
 ;
@@ -34,8 +36,6 @@ atom : INT
 | ID
 | STRING
 | '(' expr ')'
-| '[' expr ']'
-| '{' expr '}'
 ;
 
 //lexer rules

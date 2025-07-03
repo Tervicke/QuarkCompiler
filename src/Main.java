@@ -59,6 +59,5 @@ public class Main{
             System.out.println("generated the " + classFile + " file");
             Files.write(Paths.get(classFile),bytecode);
         }
-        System.out.println(visitor.types);
     }
 }

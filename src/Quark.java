@@ -62,7 +62,6 @@ public class Quark extends QuarkBaseVisitor<TypedValue>{
         if( !TypedValue.typeString(type.type).equals(definedType)){
             throw new RuntimeException("cannot assign " + TypedValue.typeString(type.type) + " to an " + definedType);
         }
-        System.out.println(type.type);
         if(type.type == TypedValue.Type.INT){
             mv.visitVarInsn(Opcodes.ISTORE,lastSlot);
         }else if(type.type == TypedValue.Type.STRING){
@@ -78,12 +77,12 @@ public class Quark extends QuarkBaseVisitor<TypedValue>{
     }
 
     @Override
-    public TypedValue visitEqualityexpr(QuarkParser.EqualityexprContext ctx) {
+    public TypedValue visitEqualityexpr(QuarkParser.EqualityexprContext ctx ) {
         if(ctx.getChildCount() == 1){
-            return visit(ctx.addexpr(0));
+            return visit(ctx.relationalexpr(0));
         }
-        TypedValue left = visit(ctx.addexpr(0));
-        TypedValue right = visit(ctx.addexpr(1));
+        TypedValue left = visit(ctx.relationalexpr(0));
+        TypedValue right = visit(ctx.relationalexpr(1));
         if(left.type != right.type){
             throw new RuntimeException("Cannot equate" + TypedValue.typeString(left.type) + " to " + TypedValue.typeString(right.type));
         }
@@ -103,6 +102,79 @@ public class Quark extends QuarkBaseVisitor<TypedValue>{
         mv.visitInsn(Opcodes.ICONST_1);
         mv.visitLabel(endlabel);
         return new TypedValue(TypedValue.Type.BOOL,null);
+    }
+
+    @Override
+    public TypedValue visitRelationalexpr(QuarkParser.RelationalexprContext ctx) {
+        if(ctx.getChildCount() == 1){//just an value
+            return visit(ctx.addexpr(0));
+        }
+        TypedValue left = visit(ctx.addexpr(0));
+        TypedValue right = visit(ctx.addexpr(1));
+        String op = ctx.getChild(1).getText();
+        Map<String, Integer> relationalOps = Map.of(
+                "<",  Opcodes.IF_ICMPLT,
+                "<=", Opcodes.IF_ICMPLE,
+                ">",  Opcodes.IF_ICMPGT,
+                ">=", Opcodes.IF_ICMPGE
+        );
+        Integer opcode = relationalOps.get(op);
+        if(opcode == null){
+            throw new RuntimeException("unknown relational operator");
+        }
+        Label trueLabel = new Label();
+        Label endLabel = new Label();
+
+        mv.visitJumpInsn(opcode,trueLabel);
+        mv.visitInsn(Opcodes.ICONST_0);
+        mv.visitJumpInsn(Opcodes.GOTO,endLabel);
+
+        mv.visitLabel(trueLabel);
+        mv.visitInsn(Opcodes.ICONST_1);
+
+        mv.visitLabel(endLabel);
+        return new TypedValue(TypedValue.Type.BOOL,null);
+    }
+
+    public TypedValue visitEqualityexprForIf(QuarkParser.EqualityexprContext ctx, Label endLabel) { //endLabel is changed in the if visitor to point after the end of the if block
+        // use asCondition to choose whether to emit a conditional jump or a push boolean
+
+        Map<String, Integer> invertedOps = Map.of(
+                "==", Opcodes.IF_ICMPNE,
+                "!=", Opcodes.IF_ICMPEQ,
+                "<",  Opcodes.IF_ICMPGE,
+                "<=", Opcodes.IF_ICMPGT,
+                ">",  Opcodes.IF_ICMPLE,
+                ">=", Opcodes.IF_ICMPLT
+        );
+
+        if(ctx.getChildCount() == 1){
+            var relationalExprCtx = ctx.relationalexpr(0);
+            TypedValue type =visitRelationalExprForIf(relationalExprCtx , endLabel , invertedOps);
+            return type;
+        }
+        TypedValue left = visit(ctx.relationalexpr(0));
+        TypedValue right = visit(ctx.relationalexpr(1));
+        if(left.type != right.type){
+            throw new RuntimeException("Cannot equate" + TypedValue.typeString(left.type) + " to " + TypedValue.typeString(right.type));
+        }
+        String op = ctx.getChild(1).getText();
+        mv.visitJumpInsn(invertedOps.get(op) , endLabel);
+        return new TypedValue(TypedValue.Type.UNKNOWN,null);
+    }
+    public TypedValue visitRelationalExprForIf(QuarkParser.RelationalexprContext ctx , Label endlabel , Map<String,Integer> invertedOps){
+        if(ctx.getChildCount() == 1){
+            //TODO: Idk what to do to be honest
+        }
+        TypedValue left = visit(ctx.addexpr(0));
+        TypedValue right = visit(ctx.addexpr(1));
+        String op = ctx.getChild(1).getText();
+        Integer opcode = invertedOps.get(op);
+        if(left.type != right.type){
+            throw new RuntimeException("Cannot equate" + TypedValue.typeString(left.type) + " to " + TypedValue.typeString(right.type));
+        }
+        mv.visitJumpInsn(opcode , endlabel);
+        return new TypedValue(TypedValue.Type.UNKNOWN,null);
     }
 
     @Override
@@ -207,22 +279,18 @@ public class Quark extends QuarkBaseVisitor<TypedValue>{
         }else if(type.type == TypedValue.Type.BOOL){
             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,"java/io/PrintStream","println","(Z)V");
         }
-        //System.out.println(value);
         return type;
     }
-
     @Override
     public TypedValue visitIfstatement(QuarkParser.IfstatementContext ctx) {
-        // left == / != right
-        System.out.println("inside the if statement");
-        for(int i = 0 ; i < ctx.equalityexpr().size() ; i++){
-            System.out.println(ctx.equalityexpr().get(i).getText());
-        }
-
-        TypedValue right = visit(ctx.equalityexpr().get(2));
-        String op = ctx.equalityexpr().get(1).getText() ;
-        System.out.println( TypedValue.typeString(right.type));
-        System.out.println( op );
-        return new TypedValue(TypedValue.Type.UNKNOWN,null);
+        //manually bruteforce till the expr context for now
+        var eq = ctx.expr().equalityexpr();
+        Label endLabel =  new Label();
+        TypedValue type = visitEqualityexprForIf(eq , endLabel);
+        visit(ctx.block());
+        // if ( expr )
+        //set the endlabel
+        mv.visitLabel(endLabel);
+        return type;
     }
 }
