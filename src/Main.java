@@ -20,7 +20,7 @@ public class Main{
             Path filepath = Paths.get(filename);
             input = CharStreams.fromPath(filepath);
         }else{
-            input = CharStreams.fromStream(System.in);
+            throw new RuntimeException("Filename not provided");
         }
         QuarkLexer lexer = new QuarkLexer(input);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -49,7 +49,7 @@ public class Main{
         mv.visitInsn(Opcodes.RETURN);
 
         //finish up the MethodVisitor and ClassWriter
-        mv.visitMaxs(0,0);
+        mv.visitMaxs(-1,-1);
         mv.visitEnd();
         cw.visitEnd();
         byte[] bytecode = cw.toByteArray();

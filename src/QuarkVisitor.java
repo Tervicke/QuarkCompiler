@@ -16,6 +16,12 @@ public interface QuarkVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitProg(QuarkParser.ProgContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link QuarkParser#stat}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitStat(QuarkParser.StatContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link QuarkParser#ifstatement}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -27,12 +33,6 @@ public interface QuarkVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitBlock(QuarkParser.BlockContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link QuarkParser#stat}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitStat(QuarkParser.StatContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link QuarkParser#assigstat}.
 	 * @param ctx the parse tree

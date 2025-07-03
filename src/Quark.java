@@ -3,6 +3,7 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.stringtemplate.v4.misc.TypeRegistry;
@@ -46,8 +47,10 @@ public class Quark extends QuarkBaseVisitor<TypedValue>{
             return visit(ctx.assigstat());
         } else if (ctx.printstat() != null) {
             return visit(ctx.printstat());
+        }else if(ctx.ifstatement() != null){
+            return visit(ctx.ifstatement());
         }
-        throw new RuntimeException("Incorrect syntax " + ctx.getText());
+        return new TypedValue(TypedValue.Type.UNKNOWN,null);
     }
 
     @Override
@@ -62,17 +65,9 @@ public class Quark extends QuarkBaseVisitor<TypedValue>{
         System.out.println(type.type);
         if(type.type == TypedValue.Type.INT){
             mv.visitVarInsn(Opcodes.ISTORE,lastSlot);
-            System.out.println("stored an int successfully");
         }else if(type.type == TypedValue.Type.STRING){
             mv.visitVarInsn(Opcodes.ASTORE,lastSlot);
-        }else if(type.type == TypedValue.Type.BOOL){
-            if(type.value != null){ //check if the value is not meaning something like this bool b = a (a is another bull ) in that case a will already be loaded after visiting
-                if((Boolean) type.value){
-                    mv.visitInsn(Opcodes.ICONST_1);
-                }else{
-                    mv.visitInsn(Opcodes.ICONST_0);
-                }
-            }
+        }else if(type.type == TypedValue.Type.BOOL){ //the value will already be loaded for bull
             mv.visitVarInsn(Opcodes.ISTORE,lastSlot);
         }
         memory.put(id , lastSlot);
@@ -87,21 +82,27 @@ public class Quark extends QuarkBaseVisitor<TypedValue>{
         if(ctx.getChildCount() == 1){
             return visit(ctx.addexpr(0));
         }
-        TypedValue currentype = visit(ctx.addexpr(0));
-        boolean value = false;
-        for(int i = 1 ; i < ctx.addexpr().size() ; i++){
-            TypedValue nextype = visit(ctx.addexpr(i));
-            if(nextype.type != currentype.type){
-                throw new RuntimeException("Cannot equate" + currentype + " to " + nextype);
-            }
-            String op = ctx.getChild(2*i - 1).getText();
-            if(op.equals("==")){
-                value = (currentype.value == nextype.value);
-            }else{
-                value = (currentype.value != nextype.value);
-            }
+        TypedValue left = visit(ctx.addexpr(0));
+        TypedValue right = visit(ctx.addexpr(1));
+        if(left.type != right.type){
+            throw new RuntimeException("Cannot equate" + TypedValue.typeString(left.type) + " to " + TypedValue.typeString(right.type));
         }
-        return new TypedValue(TypedValue.Type.BOOL,value);
+        String op = ctx.getChild(1).getText();
+        Label truelabel = new Label();
+        Label endlabel = new Label();
+        if(op.equals("==")){
+            mv.visitJumpInsn(Opcodes.IF_ICMPEQ,truelabel); //equal
+        }else if(op.equals("!=")){
+            mv.visitJumpInsn(Opcodes.IF_ICMPNE,truelabel); //noequal
+        }else{
+            throw new RuntimeException("unknown operation");
+        }
+        mv.visitInsn(Opcodes.ICONST_0);
+        mv.visitJumpInsn(Opcodes.GOTO,endlabel);
+        mv.visitLabel(truelabel);
+        mv.visitInsn(Opcodes.ICONST_1);
+        mv.visitLabel(endlabel);
+        return new TypedValue(TypedValue.Type.BOOL,null);
     }
 
     @Override
@@ -208,5 +209,20 @@ public class Quark extends QuarkBaseVisitor<TypedValue>{
         }
         //System.out.println(value);
         return type;
+    }
+
+    @Override
+    public TypedValue visitIfstatement(QuarkParser.IfstatementContext ctx) {
+        // left == / != right
+        System.out.println("inside the if statement");
+        for(int i = 0 ; i < ctx.equalityexpr().size() ; i++){
+            System.out.println(ctx.equalityexpr().get(i).getText());
+        }
+
+        TypedValue right = visit(ctx.equalityexpr().get(2));
+        String op = ctx.equalityexpr().get(1).getText() ;
+        System.out.println( TypedValue.typeString(right.type));
+        System.out.println( op );
+        return new TypedValue(TypedValue.Type.UNKNOWN,null);
     }
 }
