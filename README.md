@@ -12,12 +12,33 @@ Open the project in IntelliJ and add all the JARs from the [jars](jars/) folder 
 <br> Some examples
 
 ```
-//this is a comment
-int x = 10
-int y = 57
-int z = x + y
-print(z)
+// Variable declarations
+int a = 10
+int b = 3
+int c = a + b * 2 - (a % b) / 1
 
-string name = "tervicke"
-print(name)
+string greeting = "Hello"
+string name = "World"
+
+// Boolean logic using relational and equality expressions
+bool cond1 = a > b
+bool cond2 = a == 10
+bool cond3 = a != b
+
+// Print statements
+print(a)
+print(c)
+print(greeting)
+print(cond1)
+
+// Control flow using if
+if (a > b) {
+    print("a is greater than b")
+    int result = (a + b) * (a - b) % 2
+    print(result)
+}
+
+if (cond2 == true) {
+    print("Condition is true")
+}
 ```
