@@ -35,7 +35,10 @@ mulexpr : mulexpr ( '*' | '/' | '%' ) atom
 atom : INT
 | ID
 | STRING
+| TRUE
+| FALSE
 | '(' expr ')'
+
 ;
 
 //lexer rules
@@ -43,6 +46,8 @@ TYPE
     : 'int'
     | 'string'
     | 'bool' ;
+TRUE  : 'true' ;
+FALSE : 'false' ;
 ID : [a-zA-Z_][a-zA-Z_0-9]* ;
 INT : [0-9]+ ;
 NEWLINE : '\r'?'\n' ;

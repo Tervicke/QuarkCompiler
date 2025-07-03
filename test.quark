@@ -24,7 +24,6 @@ if (a > b) {
     print(result)
 }
 
-//TODO enable true and false as keywords
-//if (cond2 == true) {
-//    print("Condition is true")
-//}
+if (cond2 == true) {
+    print("Condition is true")
+}
