@@ -1,0 +1,8 @@
+int x = 1234
+print(x)
+string text = "some text"
+print(text)
+bool even1 = 10 % 2 == 0
+print(even1)
+bool even2 = 9 % 2 == 0
+print(even2)

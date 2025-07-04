@@ -1,0 +1,13 @@
+int x = 10
+if(x % 2 == 0){
+	print("x is even")
+}else{
+	print("x is odd")
+}
+
+int y = 9
+if(y % 2 == 0){
+	print("y is even")
+}else{
+	print("y is odd")
+}
