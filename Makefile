@@ -1,5 +1,7 @@
 BUILD_DIR := build
 .PHONY: all run clean
+all: clean compile
+
 compile:
 	@chmod +x compile.sh
 	@./compile.sh
