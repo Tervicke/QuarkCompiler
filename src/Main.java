@@ -13,15 +13,16 @@ import java.nio.file.Paths;
 
 public class Main{
     public static void main(String[]args) throws IOException {
-        CharStream input;
-        String filename = "";
-        if(args.length >= 1){
-            filename = args[0];
-            Path filepath = Paths.get(filename);
-            input = CharStreams.fromPath(filepath);
-        }else{
-            throw new RuntimeException("Filename not provided");
+        if(args.length < 1){
+            throw new RuntimeException("No input file provided");
         }
+        String filename = args[0];
+        String output = "output";
+        if (args.length >= 3 && args[1].equals("-o")) {
+            output = args[2];
+        }
+        Path filepath = Paths.get(filename);
+        CharStream input = CharStreams.fromPath(filepath);
         QuarkLexer lexer = new QuarkLexer(input);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         QuarkParser parser = new QuarkParser(tokens);
@@ -29,7 +30,7 @@ public class Main{
 
         //generate the classWriter cw
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
-        cw.visit(Opcodes.V1_7 ,Opcodes.ACC_PUBLIC, "test" , null , "java/lang/Object" , null);
+        cw.visit(Opcodes.V1_7 ,Opcodes.ACC_PUBLIC, output , null , "java/lang/Object" , null);
 
         //MethoVisitor //defines the public static void main
         MethodVisitor mv = cw.visitMethod(
@@ -53,11 +54,9 @@ public class Main{
         mv.visitEnd();
         cw.visitEnd();
         byte[] bytecode = cw.toByteArray();
-        if(args.length >= 1){
-            String inputFile = args[0];
-            String classFile = inputFile.replace(".quark",".class");
-            System.out.println("generated the " + classFile + " file");
-            Files.write(Paths.get(classFile),bytecode);
-        }
+        String inputFile = args[0];
+        String classFile = output + ".class";
+        System.out.println("generated the " + classFile + " file");
+        Files.write(Paths.get(classFile),bytecode);
     }
 }
