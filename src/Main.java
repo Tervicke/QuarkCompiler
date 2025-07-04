@@ -56,7 +56,7 @@ public class Main{
         byte[] bytecode = cw.toByteArray();
         String inputFile = args[0];
         String classFile = output + ".class";
-        System.out.println("generated the " + classFile + " file");
+        System.out.println("generated " + classFile);
         Files.write(Paths.get(classFile),bytecode);
     }
 }

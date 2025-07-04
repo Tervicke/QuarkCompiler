@@ -299,7 +299,6 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         mv.visitJumpInsn(Opcodes.GOTO,endLabel);
         //check if else statement exists
         mv.visitLabel(elseLabel);
-        System.out.println(ctx.block().size());
         if(ctx.block().size() > 1){ //true it exists
             visit(ctx.block(1));
         }
