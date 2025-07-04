@@ -11,5 +11,5 @@ clean:
 	rm -rf $(BUILD_DIR)
 
 run:
-	java -cp "build:jars/*" Main $(input) -o $(output) 
+	@java -cp "build:jars/*" Main $(input) -o $(output) 
 
