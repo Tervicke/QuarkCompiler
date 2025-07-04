@@ -18,33 +18,33 @@ public class QuarkParser extends Parser {
 	public static final int
 		T__0=1, T__1=2, T__2=3, T__3=4, T__4=5, T__5=6, T__6=7, T__7=8, T__8=9, 
 		T__9=10, T__10=11, T__11=12, T__12=13, T__13=14, T__14=15, T__15=16, T__16=17, 
-		T__17=18, T__18=19, TYPE=20, TRUE=21, FALSE=22, ID=23, INT=24, NEWLINE=25, 
-		WS=26, STRING=27, LineComment=28;
+		T__17=18, T__18=19, T__19=20, TYPE=21, TRUE=22, FALSE=23, ID=24, INT=25, 
+		NEWLINE=26, WS=27, STRING=28, LineComment=29;
 	public static final int
-		RULE_prog = 0, RULE_stat = 1, RULE_ifstatement = 2, RULE_block = 3, RULE_assigstat = 4, 
-		RULE_printstat = 5, RULE_expr = 6, RULE_equalityexpr = 7, RULE_relationalexpr = 8, 
-		RULE_addexpr = 9, RULE_mulexpr = 10, RULE_atom = 11;
+		RULE_prog = 0, RULE_stat = 1, RULE_ifstatement = 2, RULE_block = 3, RULE_whilestat = 4, 
+		RULE_assigstat = 5, RULE_printstat = 6, RULE_expr = 7, RULE_equalityexpr = 8, 
+		RULE_relationalexpr = 9, RULE_addexpr = 10, RULE_mulexpr = 11, RULE_atom = 12;
 	private static String[] makeRuleNames() {
 		return new String[] {
-			"prog", "stat", "ifstatement", "block", "assigstat", "printstat", "expr", 
-			"equalityexpr", "relationalexpr", "addexpr", "mulexpr", "atom"
+			"prog", "stat", "ifstatement", "block", "whilestat", "assigstat", "printstat", 
+			"expr", "equalityexpr", "relationalexpr", "addexpr", "mulexpr", "atom"
 		};
 	}
 	public static final String[] ruleNames = makeRuleNames();
 
 	private static String[] makeLiteralNames() {
 		return new String[] {
-			null, "'if'", "'('", "')'", "'else'", "'{'", "'}'", "'='", "'print'", 
-			"'=='", "'!='", "'<'", "'<='", "'>'", "'>='", "'+'", "'-'", "'*'", "'/'", 
-			"'%'", null, "'true'", "'false'"
+			null, "'if'", "'('", "')'", "'else'", "'{'", "'}'", "'while'", "'='", 
+			"'print'", "'=='", "'!='", "'<'", "'<='", "'>'", "'>='", "'+'", "'-'", 
+			"'*'", "'/'", "'%'", null, "'true'", "'false'"
 		};
 	}
 	private static final String[] _LITERAL_NAMES = makeLiteralNames();
 	private static String[] makeSymbolicNames() {
 		return new String[] {
 			null, null, null, null, null, null, null, null, null, null, null, null, 
-			null, null, null, null, null, null, null, null, "TYPE", "TRUE", "FALSE", 
-			"ID", "INT", "NEWLINE", "WS", "STRING", "LineComment"
+			null, null, null, null, null, null, null, null, null, "TYPE", "TRUE", 
+			"FALSE", "ID", "INT", "NEWLINE", "WS", "STRING", "LineComment"
 		};
 	}
 	private static final String[] _SYMBOLIC_NAMES = makeSymbolicNames();
@@ -132,20 +132,20 @@ public class QuarkParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(25); 
+			setState(27); 
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			do {
 				{
 				{
-				setState(24);
+				setState(26);
 				stat();
 				}
 				}
-				setState(27); 
+				setState(29); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-			} while ( ((_la) & ~0x3f) == 0 && ((1L << _la) & 303038722L) != 0 );
+			} while ( ((_la) & ~0x3f) == 0 && ((1L << _la) & 622854786L) != 0 );
 			}
 		}
 		catch (RecognitionException re) {
@@ -172,6 +172,9 @@ public class QuarkParser extends Parser {
 		public IfstatementContext ifstatement() {
 			return getRuleContext(IfstatementContext.class,0);
 		}
+		public WhilestatContext whilestat() {
+			return getRuleContext(WhilestatContext.class,0);
+		}
 		public TerminalNode LineComment() { return getToken(QuarkParser.LineComment, 0); }
 		public TerminalNode NEWLINE() { return getToken(QuarkParser.NEWLINE, 0); }
 		public StatContext(ParserRuleContext parent, int invokingState) {
@@ -197,41 +200,49 @@ public class QuarkParser extends Parser {
 		StatContext _localctx = new StatContext(_ctx, getState());
 		enterRule(_localctx, 2, RULE_stat);
 		try {
-			setState(34);
+			setState(37);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case TYPE:
+			case ID:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(29);
+				setState(31);
 				((StatContext)_localctx).assig = assigstat();
 				}
 				break;
-			case T__7:
+			case T__8:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(30);
+				setState(32);
 				((StatContext)_localctx).print = printstat();
 				}
 				break;
 			case T__0:
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(31);
+				setState(33);
 				ifstatement();
 				}
 				break;
-			case LineComment:
+			case T__6:
 				enterOuterAlt(_localctx, 4);
 				{
-				setState(32);
+				setState(34);
+				whilestat();
+				}
+				break;
+			case LineComment:
+				enterOuterAlt(_localctx, 5);
+				{
+				setState(35);
 				match(LineComment);
 				}
 				break;
 			case NEWLINE:
-				enterOuterAlt(_localctx, 5);
+				enterOuterAlt(_localctx, 6);
 				{
-				setState(33);
+				setState(36);
 				match(NEWLINE);
 				}
 				break;
@@ -287,24 +298,24 @@ public class QuarkParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(36);
-			match(T__0);
-			setState(37);
-			match(T__1);
-			setState(38);
-			expr();
 			setState(39);
-			match(T__2);
+			match(T__0);
 			setState(40);
-			block();
+			match(T__1);
+			setState(41);
+			expr();
+			setState(42);
+			match(T__2);
 			setState(43);
+			block();
+			setState(46);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			if (_la==T__3) {
 				{
-				setState(41);
+				setState(44);
 				match(T__3);
-				setState(42);
+				setState(45);
 				block();
 				}
 			}
@@ -356,23 +367,23 @@ public class QuarkParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(45);
+			setState(48);
 			match(T__4);
-			setState(49);
+			setState(52);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while (((_la) & ~0x3f) == 0 && ((1L << _la) & 303038722L) != 0) {
+			while (((_la) & ~0x3f) == 0 && ((1L << _la) & 622854786L) != 0) {
 				{
 				{
-				setState(46);
+				setState(49);
 				stat();
 				}
 				}
-				setState(51);
+				setState(54);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
-			setState(52);
+			setState(55);
 			match(T__5);
 			}
 		}
@@ -388,12 +399,68 @@ public class QuarkParser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
+	public static class WhilestatContext extends ParserRuleContext {
+		public ExprContext expr() {
+			return getRuleContext(ExprContext.class,0);
+		}
+		public BlockContext block() {
+			return getRuleContext(BlockContext.class,0);
+		}
+		public WhilestatContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_whilestat; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof QuarkListener ) ((QuarkListener)listener).enterWhilestat(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof QuarkListener ) ((QuarkListener)listener).exitWhilestat(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof QuarkVisitor ) return ((QuarkVisitor<? extends T>)visitor).visitWhilestat(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+
+	public final WhilestatContext whilestat() throws RecognitionException {
+		WhilestatContext _localctx = new WhilestatContext(_ctx, getState());
+		enterRule(_localctx, 8, RULE_whilestat);
+		try {
+			enterOuterAlt(_localctx, 1);
+			{
+			setState(57);
+			match(T__6);
+			setState(58);
+			match(T__1);
+			setState(59);
+			expr();
+			setState(60);
+			match(T__2);
+			setState(61);
+			block();
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	@SuppressWarnings("CheckReturnValue")
 	public static class AssigstatContext extends ParserRuleContext {
-		public TerminalNode TYPE() { return getToken(QuarkParser.TYPE, 0); }
 		public TerminalNode ID() { return getToken(QuarkParser.ID, 0); }
 		public ExprContext expr() {
 			return getRuleContext(ExprContext.class,0);
 		}
+		public TerminalNode TYPE() { return getToken(QuarkParser.TYPE, 0); }
 		public AssigstatContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -415,18 +482,27 @@ public class QuarkParser extends Parser {
 
 	public final AssigstatContext assigstat() throws RecognitionException {
 		AssigstatContext _localctx = new AssigstatContext(_ctx, getState());
-		enterRule(_localctx, 8, RULE_assigstat);
+		enterRule(_localctx, 10, RULE_assigstat);
+		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(54);
-			match(TYPE);
-			setState(55);
+			setState(64);
+			_errHandler.sync(this);
+			_la = _input.LA(1);
+			if (_la==TYPE) {
+				{
+				setState(63);
+				match(TYPE);
+				}
+			}
+
+			setState(66);
 			match(ID);
-			setState(56);
-			match(T__6);
+			setState(67);
+			match(T__7);
 			{
-			setState(57);
+			setState(68);
 			expr();
 			}
 			}
@@ -468,19 +544,19 @@ public class QuarkParser extends Parser {
 
 	public final PrintstatContext printstat() throws RecognitionException {
 		PrintstatContext _localctx = new PrintstatContext(_ctx, getState());
-		enterRule(_localctx, 10, RULE_printstat);
+		enterRule(_localctx, 12, RULE_printstat);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(59);
-			match(T__7);
-			setState(60);
+			setState(70);
+			match(T__8);
+			setState(71);
 			match(T__1);
 			{
-			setState(61);
+			setState(72);
 			expr();
 			}
-			setState(62);
+			setState(73);
 			match(T__2);
 			}
 		}
@@ -521,11 +597,11 @@ public class QuarkParser extends Parser {
 
 	public final ExprContext expr() throws RecognitionException {
 		ExprContext _localctx = new ExprContext(_ctx, getState());
-		enterRule(_localctx, 12, RULE_expr);
+		enterRule(_localctx, 14, RULE_expr);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(64);
+			setState(75);
 			equalityexpr();
 			}
 		}
@@ -569,22 +645,22 @@ public class QuarkParser extends Parser {
 
 	public final EqualityexprContext equalityexpr() throws RecognitionException {
 		EqualityexprContext _localctx = new EqualityexprContext(_ctx, getState());
-		enterRule(_localctx, 14, RULE_equalityexpr);
+		enterRule(_localctx, 16, RULE_equalityexpr);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(66);
+			setState(77);
 			relationalexpr();
-			setState(71);
+			setState(82);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while (_la==T__8 || _la==T__9) {
+			while (_la==T__9 || _la==T__10) {
 				{
 				{
-				setState(67);
+				setState(78);
 				_la = _input.LA(1);
-				if ( !(_la==T__8 || _la==T__9) ) {
+				if ( !(_la==T__9 || _la==T__10) ) {
 				_errHandler.recoverInline(this);
 				}
 				else {
@@ -592,11 +668,11 @@ public class QuarkParser extends Parser {
 					_errHandler.reportMatch(this);
 					consume();
 				}
-				setState(68);
+				setState(79);
 				relationalexpr();
 				}
 				}
-				setState(73);
+				setState(84);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
@@ -642,22 +718,22 @@ public class QuarkParser extends Parser {
 
 	public final RelationalexprContext relationalexpr() throws RecognitionException {
 		RelationalexprContext _localctx = new RelationalexprContext(_ctx, getState());
-		enterRule(_localctx, 16, RULE_relationalexpr);
+		enterRule(_localctx, 18, RULE_relationalexpr);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(74);
+			setState(85);
 			addexpr(0);
-			setState(79);
+			setState(90);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while (((_la) & ~0x3f) == 0 && ((1L << _la) & 30720L) != 0) {
+			while (((_la) & ~0x3f) == 0 && ((1L << _la) & 61440L) != 0) {
 				{
 				{
-				setState(75);
+				setState(86);
 				_la = _input.LA(1);
-				if ( !(((_la) & ~0x3f) == 0 && ((1L << _la) & 30720L) != 0) ) {
+				if ( !(((_la) & ~0x3f) == 0 && ((1L << _la) & 61440L) != 0) ) {
 				_errHandler.recoverInline(this);
 				}
 				else {
@@ -665,11 +741,11 @@ public class QuarkParser extends Parser {
 					_errHandler.reportMatch(this);
 					consume();
 				}
-				setState(76);
+				setState(87);
 				addexpr(0);
 				}
 				}
-				setState(81);
+				setState(92);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
@@ -722,21 +798,21 @@ public class QuarkParser extends Parser {
 		int _parentState = getState();
 		AddexprContext _localctx = new AddexprContext(_ctx, _parentState);
 		AddexprContext _prevctx = _localctx;
-		int _startState = 18;
-		enterRecursionRule(_localctx, 18, RULE_addexpr, _p);
+		int _startState = 20;
+		enterRecursionRule(_localctx, 20, RULE_addexpr, _p);
 		int _la;
 		try {
 			int _alt;
 			enterOuterAlt(_localctx, 1);
 			{
 			{
-			setState(83);
+			setState(94);
 			mulexpr(0);
 			}
 			_ctx.stop = _input.LT(-1);
-			setState(90);
+			setState(101);
 			_errHandler.sync(this);
-			_alt = getInterpreter().adaptivePredict(_input,6,_ctx);
+			_alt = getInterpreter().adaptivePredict(_input,7,_ctx);
 			while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER ) {
 				if ( _alt==1 ) {
 					if ( _parseListeners!=null ) triggerExitRuleEvent();
@@ -745,11 +821,11 @@ public class QuarkParser extends Parser {
 					{
 					_localctx = new AddexprContext(_parentctx, _parentState);
 					pushNewRecursionContext(_localctx, _startState, RULE_addexpr);
-					setState(85);
+					setState(96);
 					if (!(precpred(_ctx, 2))) throw new FailedPredicateException(this, "precpred(_ctx, 2)");
-					setState(86);
+					setState(97);
 					_la = _input.LA(1);
-					if ( !(_la==T__14 || _la==T__15) ) {
+					if ( !(_la==T__15 || _la==T__16) ) {
 					_errHandler.recoverInline(this);
 					}
 					else {
@@ -757,14 +833,14 @@ public class QuarkParser extends Parser {
 						_errHandler.reportMatch(this);
 						consume();
 					}
-					setState(87);
+					setState(98);
 					mulexpr(0);
 					}
 					} 
 				}
-				setState(92);
+				setState(103);
 				_errHandler.sync(this);
-				_alt = getInterpreter().adaptivePredict(_input,6,_ctx);
+				_alt = getInterpreter().adaptivePredict(_input,7,_ctx);
 			}
 			}
 		}
@@ -815,21 +891,21 @@ public class QuarkParser extends Parser {
 		int _parentState = getState();
 		MulexprContext _localctx = new MulexprContext(_ctx, _parentState);
 		MulexprContext _prevctx = _localctx;
-		int _startState = 20;
-		enterRecursionRule(_localctx, 20, RULE_mulexpr, _p);
+		int _startState = 22;
+		enterRecursionRule(_localctx, 22, RULE_mulexpr, _p);
 		int _la;
 		try {
 			int _alt;
 			enterOuterAlt(_localctx, 1);
 			{
 			{
-			setState(94);
+			setState(105);
 			atom();
 			}
 			_ctx.stop = _input.LT(-1);
-			setState(101);
+			setState(112);
 			_errHandler.sync(this);
-			_alt = getInterpreter().adaptivePredict(_input,7,_ctx);
+			_alt = getInterpreter().adaptivePredict(_input,8,_ctx);
 			while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER ) {
 				if ( _alt==1 ) {
 					if ( _parseListeners!=null ) triggerExitRuleEvent();
@@ -838,11 +914,11 @@ public class QuarkParser extends Parser {
 					{
 					_localctx = new MulexprContext(_parentctx, _parentState);
 					pushNewRecursionContext(_localctx, _startState, RULE_mulexpr);
-					setState(96);
+					setState(107);
 					if (!(precpred(_ctx, 2))) throw new FailedPredicateException(this, "precpred(_ctx, 2)");
-					setState(97);
+					setState(108);
 					_la = _input.LA(1);
-					if ( !(((_la) & ~0x3f) == 0 && ((1L << _la) & 917504L) != 0) ) {
+					if ( !(((_la) & ~0x3f) == 0 && ((1L << _la) & 1835008L) != 0) ) {
 					_errHandler.recoverInline(this);
 					}
 					else {
@@ -850,14 +926,14 @@ public class QuarkParser extends Parser {
 						_errHandler.reportMatch(this);
 						consume();
 					}
-					setState(98);
+					setState(109);
 					atom();
 					}
 					} 
 				}
-				setState(103);
+				setState(114);
 				_errHandler.sync(this);
-				_alt = getInterpreter().adaptivePredict(_input,7,_ctx);
+				_alt = getInterpreter().adaptivePredict(_input,8,_ctx);
 			}
 			}
 		}
@@ -903,54 +979,54 @@ public class QuarkParser extends Parser {
 
 	public final AtomContext atom() throws RecognitionException {
 		AtomContext _localctx = new AtomContext(_ctx, getState());
-		enterRule(_localctx, 22, RULE_atom);
+		enterRule(_localctx, 24, RULE_atom);
 		try {
-			setState(113);
+			setState(124);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case INT:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(104);
+				setState(115);
 				match(INT);
 				}
 				break;
 			case ID:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(105);
+				setState(116);
 				match(ID);
 				}
 				break;
 			case STRING:
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(106);
+				setState(117);
 				match(STRING);
 				}
 				break;
 			case TRUE:
 				enterOuterAlt(_localctx, 4);
 				{
-				setState(107);
+				setState(118);
 				match(TRUE);
 				}
 				break;
 			case FALSE:
 				enterOuterAlt(_localctx, 5);
 				{
-				setState(108);
+				setState(119);
 				match(FALSE);
 				}
 				break;
 			case T__1:
 				enterOuterAlt(_localctx, 6);
 				{
-				setState(109);
+				setState(120);
 				match(T__1);
-				setState(110);
+				setState(121);
 				expr();
-				setState(111);
+				setState(122);
 				match(T__2);
 				}
 				break;
@@ -971,9 +1047,9 @@ public class QuarkParser extends Parser {
 
 	public boolean sempred(RuleContext _localctx, int ruleIndex, int predIndex) {
 		switch (ruleIndex) {
-		case 9:
-			return addexpr_sempred((AddexprContext)_localctx, predIndex);
 		case 10:
+			return addexpr_sempred((AddexprContext)_localctx, predIndex);
+		case 11:
 			return mulexpr_sempred((MulexprContext)_localctx, predIndex);
 		}
 		return true;
@@ -994,72 +1070,77 @@ public class QuarkParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\u0004\u0001\u001ct\u0002\u0000\u0007\u0000\u0002\u0001\u0007\u0001\u0002"+
-		"\u0002\u0007\u0002\u0002\u0003\u0007\u0003\u0002\u0004\u0007\u0004\u0002"+
-		"\u0005\u0007\u0005\u0002\u0006\u0007\u0006\u0002\u0007\u0007\u0007\u0002"+
-		"\b\u0007\b\u0002\t\u0007\t\u0002\n\u0007\n\u0002\u000b\u0007\u000b\u0001"+
-		"\u0000\u0004\u0000\u001a\b\u0000\u000b\u0000\f\u0000\u001b\u0001\u0001"+
-		"\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0003\u0001#\b\u0001"+
-		"\u0001\u0002\u0001\u0002\u0001\u0002\u0001\u0002\u0001\u0002\u0001\u0002"+
-		"\u0001\u0002\u0003\u0002,\b\u0002\u0001\u0003\u0001\u0003\u0005\u0003"+
-		"0\b\u0003\n\u0003\f\u00033\t\u0003\u0001\u0003\u0001\u0003\u0001\u0004"+
-		"\u0001\u0004\u0001\u0004\u0001\u0004\u0001\u0004\u0001\u0005\u0001\u0005"+
-		"\u0001\u0005\u0001\u0005\u0001\u0005\u0001\u0006\u0001\u0006\u0001\u0007"+
-		"\u0001\u0007\u0001\u0007\u0005\u0007F\b\u0007\n\u0007\f\u0007I\t\u0007"+
-		"\u0001\b\u0001\b\u0001\b\u0005\bN\b\b\n\b\f\bQ\t\b\u0001\t\u0001\t\u0001"+
-		"\t\u0001\t\u0001\t\u0001\t\u0005\tY\b\t\n\t\f\t\\\t\t\u0001\n\u0001\n"+
-		"\u0001\n\u0001\n\u0001\n\u0001\n\u0005\nd\b\n\n\n\f\ng\t\n\u0001\u000b"+
-		"\u0001\u000b\u0001\u000b\u0001\u000b\u0001\u000b\u0001\u000b\u0001\u000b"+
-		"\u0001\u000b\u0001\u000b\u0003\u000br\b\u000b\u0001\u000b\u0000\u0002"+
-		"\u0012\u0014\f\u0000\u0002\u0004\u0006\b\n\f\u000e\u0010\u0012\u0014\u0016"+
-		"\u0000\u0004\u0001\u0000\t\n\u0001\u0000\u000b\u000e\u0001\u0000\u000f"+
-		"\u0010\u0001\u0000\u0011\u0013w\u0000\u0019\u0001\u0000\u0000\u0000\u0002"+
-		"\"\u0001\u0000\u0000\u0000\u0004$\u0001\u0000\u0000\u0000\u0006-\u0001"+
-		"\u0000\u0000\u0000\b6\u0001\u0000\u0000\u0000\n;\u0001\u0000\u0000\u0000"+
-		"\f@\u0001\u0000\u0000\u0000\u000eB\u0001\u0000\u0000\u0000\u0010J\u0001"+
-		"\u0000\u0000\u0000\u0012R\u0001\u0000\u0000\u0000\u0014]\u0001\u0000\u0000"+
-		"\u0000\u0016q\u0001\u0000\u0000\u0000\u0018\u001a\u0003\u0002\u0001\u0000"+
-		"\u0019\u0018\u0001\u0000\u0000\u0000\u001a\u001b\u0001\u0000\u0000\u0000"+
-		"\u001b\u0019\u0001\u0000\u0000\u0000\u001b\u001c\u0001\u0000\u0000\u0000"+
-		"\u001c\u0001\u0001\u0000\u0000\u0000\u001d#\u0003\b\u0004\u0000\u001e"+
-		"#\u0003\n\u0005\u0000\u001f#\u0003\u0004\u0002\u0000 #\u0005\u001c\u0000"+
-		"\u0000!#\u0005\u0019\u0000\u0000\"\u001d\u0001\u0000\u0000\u0000\"\u001e"+
-		"\u0001\u0000\u0000\u0000\"\u001f\u0001\u0000\u0000\u0000\" \u0001\u0000"+
-		"\u0000\u0000\"!\u0001\u0000\u0000\u0000#\u0003\u0001\u0000\u0000\u0000"+
-		"$%\u0005\u0001\u0000\u0000%&\u0005\u0002\u0000\u0000&\'\u0003\f\u0006"+
-		"\u0000\'(\u0005\u0003\u0000\u0000(+\u0003\u0006\u0003\u0000)*\u0005\u0004"+
-		"\u0000\u0000*,\u0003\u0006\u0003\u0000+)\u0001\u0000\u0000\u0000+,\u0001"+
-		"\u0000\u0000\u0000,\u0005\u0001\u0000\u0000\u0000-1\u0005\u0005\u0000"+
-		"\u0000.0\u0003\u0002\u0001\u0000/.\u0001\u0000\u0000\u000003\u0001\u0000"+
-		"\u0000\u00001/\u0001\u0000\u0000\u000012\u0001\u0000\u0000\u000024\u0001"+
-		"\u0000\u0000\u000031\u0001\u0000\u0000\u000045\u0005\u0006\u0000\u0000"+
-		"5\u0007\u0001\u0000\u0000\u000067\u0005\u0014\u0000\u000078\u0005\u0017"+
-		"\u0000\u000089\u0005\u0007\u0000\u00009:\u0003\f\u0006\u0000:\t\u0001"+
-		"\u0000\u0000\u0000;<\u0005\b\u0000\u0000<=\u0005\u0002\u0000\u0000=>\u0003"+
-		"\f\u0006\u0000>?\u0005\u0003\u0000\u0000?\u000b\u0001\u0000\u0000\u0000"+
-		"@A\u0003\u000e\u0007\u0000A\r\u0001\u0000\u0000\u0000BG\u0003\u0010\b"+
-		"\u0000CD\u0007\u0000\u0000\u0000DF\u0003\u0010\b\u0000EC\u0001\u0000\u0000"+
-		"\u0000FI\u0001\u0000\u0000\u0000GE\u0001\u0000\u0000\u0000GH\u0001\u0000"+
-		"\u0000\u0000H\u000f\u0001\u0000\u0000\u0000IG\u0001\u0000\u0000\u0000"+
-		"JO\u0003\u0012\t\u0000KL\u0007\u0001\u0000\u0000LN\u0003\u0012\t\u0000"+
-		"MK\u0001\u0000\u0000\u0000NQ\u0001\u0000\u0000\u0000OM\u0001\u0000\u0000"+
-		"\u0000OP\u0001\u0000\u0000\u0000P\u0011\u0001\u0000\u0000\u0000QO\u0001"+
-		"\u0000\u0000\u0000RS\u0006\t\uffff\uffff\u0000ST\u0003\u0014\n\u0000T"+
-		"Z\u0001\u0000\u0000\u0000UV\n\u0002\u0000\u0000VW\u0007\u0002\u0000\u0000"+
-		"WY\u0003\u0014\n\u0000XU\u0001\u0000\u0000\u0000Y\\\u0001\u0000\u0000"+
+		"\u0004\u0001\u001d\u007f\u0002\u0000\u0007\u0000\u0002\u0001\u0007\u0001"+
+		"\u0002\u0002\u0007\u0002\u0002\u0003\u0007\u0003\u0002\u0004\u0007\u0004"+
+		"\u0002\u0005\u0007\u0005\u0002\u0006\u0007\u0006\u0002\u0007\u0007\u0007"+
+		"\u0002\b\u0007\b\u0002\t\u0007\t\u0002\n\u0007\n\u0002\u000b\u0007\u000b"+
+		"\u0002\f\u0007\f\u0001\u0000\u0004\u0000\u001c\b\u0000\u000b\u0000\f\u0000"+
+		"\u001d\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001"+
+		"\u0001\u0003\u0001&\b\u0001\u0001\u0002\u0001\u0002\u0001\u0002\u0001"+
+		"\u0002\u0001\u0002\u0001\u0002\u0001\u0002\u0003\u0002/\b\u0002\u0001"+
+		"\u0003\u0001\u0003\u0005\u00033\b\u0003\n\u0003\f\u00036\t\u0003\u0001"+
+		"\u0003\u0001\u0003\u0001\u0004\u0001\u0004\u0001\u0004\u0001\u0004\u0001"+
+		"\u0004\u0001\u0004\u0001\u0005\u0003\u0005A\b\u0005\u0001\u0005\u0001"+
+		"\u0005\u0001\u0005\u0001\u0005\u0001\u0006\u0001\u0006\u0001\u0006\u0001"+
+		"\u0006\u0001\u0006\u0001\u0007\u0001\u0007\u0001\b\u0001\b\u0001\b\u0005"+
+		"\bQ\b\b\n\b\f\bT\t\b\u0001\t\u0001\t\u0001\t\u0005\tY\b\t\n\t\f\t\\\t"+
+		"\t\u0001\n\u0001\n\u0001\n\u0001\n\u0001\n\u0001\n\u0005\nd\b\n\n\n\f"+
+		"\ng\t\n\u0001\u000b\u0001\u000b\u0001\u000b\u0001\u000b\u0001\u000b\u0001"+
+		"\u000b\u0005\u000bo\b\u000b\n\u000b\f\u000br\t\u000b\u0001\f\u0001\f\u0001"+
+		"\f\u0001\f\u0001\f\u0001\f\u0001\f\u0001\f\u0001\f\u0003\f}\b\f\u0001"+
+		"\f\u0000\u0002\u0014\u0016\r\u0000\u0002\u0004\u0006\b\n\f\u000e\u0010"+
+		"\u0012\u0014\u0016\u0018\u0000\u0004\u0001\u0000\n\u000b\u0001\u0000\f"+
+		"\u000f\u0001\u0000\u0010\u0011\u0001\u0000\u0012\u0014\u0083\u0000\u001b"+
+		"\u0001\u0000\u0000\u0000\u0002%\u0001\u0000\u0000\u0000\u0004\'\u0001"+
+		"\u0000\u0000\u0000\u00060\u0001\u0000\u0000\u0000\b9\u0001\u0000\u0000"+
+		"\u0000\n@\u0001\u0000\u0000\u0000\fF\u0001\u0000\u0000\u0000\u000eK\u0001"+
+		"\u0000\u0000\u0000\u0010M\u0001\u0000\u0000\u0000\u0012U\u0001\u0000\u0000"+
+		"\u0000\u0014]\u0001\u0000\u0000\u0000\u0016h\u0001\u0000\u0000\u0000\u0018"+
+		"|\u0001\u0000\u0000\u0000\u001a\u001c\u0003\u0002\u0001\u0000\u001b\u001a"+
+		"\u0001\u0000\u0000\u0000\u001c\u001d\u0001\u0000\u0000\u0000\u001d\u001b"+
+		"\u0001\u0000\u0000\u0000\u001d\u001e\u0001\u0000\u0000\u0000\u001e\u0001"+
+		"\u0001\u0000\u0000\u0000\u001f&\u0003\n\u0005\u0000 &\u0003\f\u0006\u0000"+
+		"!&\u0003\u0004\u0002\u0000\"&\u0003\b\u0004\u0000#&\u0005\u001d\u0000"+
+		"\u0000$&\u0005\u001a\u0000\u0000%\u001f\u0001\u0000\u0000\u0000% \u0001"+
+		"\u0000\u0000\u0000%!\u0001\u0000\u0000\u0000%\"\u0001\u0000\u0000\u0000"+
+		"%#\u0001\u0000\u0000\u0000%$\u0001\u0000\u0000\u0000&\u0003\u0001\u0000"+
+		"\u0000\u0000\'(\u0005\u0001\u0000\u0000()\u0005\u0002\u0000\u0000)*\u0003"+
+		"\u000e\u0007\u0000*+\u0005\u0003\u0000\u0000+.\u0003\u0006\u0003\u0000"+
+		",-\u0005\u0004\u0000\u0000-/\u0003\u0006\u0003\u0000.,\u0001\u0000\u0000"+
+		"\u0000./\u0001\u0000\u0000\u0000/\u0005\u0001\u0000\u0000\u000004\u0005"+
+		"\u0005\u0000\u000013\u0003\u0002\u0001\u000021\u0001\u0000\u0000\u0000"+
+		"36\u0001\u0000\u0000\u000042\u0001\u0000\u0000\u000045\u0001\u0000\u0000"+
+		"\u000057\u0001\u0000\u0000\u000064\u0001\u0000\u0000\u000078\u0005\u0006"+
+		"\u0000\u00008\u0007\u0001\u0000\u0000\u00009:\u0005\u0007\u0000\u0000"+
+		":;\u0005\u0002\u0000\u0000;<\u0003\u000e\u0007\u0000<=\u0005\u0003\u0000"+
+		"\u0000=>\u0003\u0006\u0003\u0000>\t\u0001\u0000\u0000\u0000?A\u0005\u0015"+
+		"\u0000\u0000@?\u0001\u0000\u0000\u0000@A\u0001\u0000\u0000\u0000AB\u0001"+
+		"\u0000\u0000\u0000BC\u0005\u0018\u0000\u0000CD\u0005\b\u0000\u0000DE\u0003"+
+		"\u000e\u0007\u0000E\u000b\u0001\u0000\u0000\u0000FG\u0005\t\u0000\u0000"+
+		"GH\u0005\u0002\u0000\u0000HI\u0003\u000e\u0007\u0000IJ\u0005\u0003\u0000"+
+		"\u0000J\r\u0001\u0000\u0000\u0000KL\u0003\u0010\b\u0000L\u000f\u0001\u0000"+
+		"\u0000\u0000MR\u0003\u0012\t\u0000NO\u0007\u0000\u0000\u0000OQ\u0003\u0012"+
+		"\t\u0000PN\u0001\u0000\u0000\u0000QT\u0001\u0000\u0000\u0000RP\u0001\u0000"+
+		"\u0000\u0000RS\u0001\u0000\u0000\u0000S\u0011\u0001\u0000\u0000\u0000"+
+		"TR\u0001\u0000\u0000\u0000UZ\u0003\u0014\n\u0000VW\u0007\u0001\u0000\u0000"+
+		"WY\u0003\u0014\n\u0000XV\u0001\u0000\u0000\u0000Y\\\u0001\u0000\u0000"+
 		"\u0000ZX\u0001\u0000\u0000\u0000Z[\u0001\u0000\u0000\u0000[\u0013\u0001"+
 		"\u0000\u0000\u0000\\Z\u0001\u0000\u0000\u0000]^\u0006\n\uffff\uffff\u0000"+
 		"^_\u0003\u0016\u000b\u0000_e\u0001\u0000\u0000\u0000`a\n\u0002\u0000\u0000"+
-		"ab\u0007\u0003\u0000\u0000bd\u0003\u0016\u000b\u0000c`\u0001\u0000\u0000"+
+		"ab\u0007\u0002\u0000\u0000bd\u0003\u0016\u000b\u0000c`\u0001\u0000\u0000"+
 		"\u0000dg\u0001\u0000\u0000\u0000ec\u0001\u0000\u0000\u0000ef\u0001\u0000"+
 		"\u0000\u0000f\u0015\u0001\u0000\u0000\u0000ge\u0001\u0000\u0000\u0000"+
-		"hr\u0005\u0018\u0000\u0000ir\u0005\u0017\u0000\u0000jr\u0005\u001b\u0000"+
-		"\u0000kr\u0005\u0015\u0000\u0000lr\u0005\u0016\u0000\u0000mn\u0005\u0002"+
-		"\u0000\u0000no\u0003\f\u0006\u0000op\u0005\u0003\u0000\u0000pr\u0001\u0000"+
-		"\u0000\u0000qh\u0001\u0000\u0000\u0000qi\u0001\u0000\u0000\u0000qj\u0001"+
-		"\u0000\u0000\u0000qk\u0001\u0000\u0000\u0000ql\u0001\u0000\u0000\u0000"+
-		"qm\u0001\u0000\u0000\u0000r\u0017\u0001\u0000\u0000\u0000\t\u001b\"+1"+
-		"GOZeq";
+		"hi\u0006\u000b\uffff\uffff\u0000ij\u0003\u0018\f\u0000jp\u0001\u0000\u0000"+
+		"\u0000kl\n\u0002\u0000\u0000lm\u0007\u0003\u0000\u0000mo\u0003\u0018\f"+
+		"\u0000nk\u0001\u0000\u0000\u0000or\u0001\u0000\u0000\u0000pn\u0001\u0000"+
+		"\u0000\u0000pq\u0001\u0000\u0000\u0000q\u0017\u0001\u0000\u0000\u0000"+
+		"rp\u0001\u0000\u0000\u0000s}\u0005\u0019\u0000\u0000t}\u0005\u0018\u0000"+
+		"\u0000u}\u0005\u001c\u0000\u0000v}\u0005\u0016\u0000\u0000w}\u0005\u0017"+
+		"\u0000\u0000xy\u0005\u0002\u0000\u0000yz\u0003\u000e\u0007\u0000z{\u0005"+
+		"\u0003\u0000\u0000{}\u0001\u0000\u0000\u0000|s\u0001\u0000\u0000\u0000"+
+		"|t\u0001\u0000\u0000\u0000|u\u0001\u0000\u0000\u0000|v\u0001\u0000\u0000"+
+		"\u0000|w\u0001\u0000\u0000\u0000|x\u0001\u0000\u0000\u0000}\u0019\u0001"+
+		"\u0000\u0000\u0000\n\u001d%.4@RZep|";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {

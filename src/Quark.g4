@@ -7,6 +7,7 @@ stat
 : assig=assigstat
 | print=printstat
 | ifstatement
+| whilestat
 | LineComment
 | NEWLINE
 
@@ -15,7 +16,9 @@ stat
 ifstatement: 'if' '(' expr ')' block ('else' block )?;
 block: '{' stat* '}' ;
 
-assigstat : TYPE ID '=' ( expr) ;
+whilestat: 'while' '(' expr ')' block;
+
+assigstat : TYPE? ID '=' ( expr) ;
 printstat : 'print' '(' (expr) ')' ;
 
 expr

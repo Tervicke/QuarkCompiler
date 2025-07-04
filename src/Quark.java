@@ -1,17 +1,8 @@
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.tree.ParseTree;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.stringtemplate.v4.misc.TypeRegistry;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -38,6 +29,24 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
             "%", (a, b) -> a % b
     );
 
+    private final Map<String, Integer> invertedOps = Map.of(
+            "==", Opcodes.IF_ICMPNE,
+            "!=", Opcodes.IF_ICMPEQ,
+            "<", Opcodes.IF_ICMPGE,
+            "<=", Opcodes.IF_ICMPGT,
+            ">", Opcodes.IF_ICMPLE,
+            ">=", Opcodes.IF_ICMPLT
+    );
+
+    Map<String, Integer> relationalOps = Map.of(
+            "<", Opcodes.IF_ICMPLT,
+            "<=", Opcodes.IF_ICMPLE,
+            ">", Opcodes.IF_ICMPGT,
+            ">=", Opcodes.IF_ICMPGE,
+            "==",Opcodes.IF_ICMPEQ,
+            "!=",Opcodes.IF_ICMPNE
+    );
+
     public Quark(ClassWriter cw, MethodVisitor mv) {
         this.cw = cw;
         this.mv = mv;
@@ -51,30 +60,47 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
             return visit(ctx.printstat());
         } else if (ctx.ifstatement() != null) {
             return visit(ctx.ifstatement());
+        }else if(ctx.whilestat() != null){
+            return visit(ctx.whilestat());
         }
         return new TypedValue(TypedValue.Type.UNKNOWN, null);
     }
-
+    public void pushStoreIns(TypedValue.Type type , int slot){
+        if (type == TypedValue.Type.INT) {
+            mv.visitVarInsn(Opcodes.ISTORE, slot);
+        } else if (type == TypedValue.Type.STRING) {
+            mv.visitVarInsn(Opcodes.ASTORE, slot);
+        } else if (type == TypedValue.Type.BOOL) { //the value will already be loaded for bull
+            mv.visitVarInsn(Opcodes.ISTORE, slot);
+        }
+    }
     @Override
     public TypedValue visitAssigstat(QuarkParser.AssigstatContext ctx) {
-        String id = ctx.ID().getText();
-        String definedType = ctx.TYPE().getText();
-        TypedValue type = visit(ctx.expr());
-        //convert this to java bytecode
-        if (!TypedValue.typeString(type.type).equals(definedType)) {
-            throw new RuntimeException("cannot assign " + TypedValue.typeString(type.type) + " to an " + definedType);
+        //check if its assigment or decleration
+        TypedValue type;
+        if(ctx.TYPE() == null){ //assigment
+            String name = ctx.ID().getText();
+            if( !memory.containsKey(name)){
+                throw new RuntimeException("Not recognized "+ name);
+            }
+            int slot = memory.get(name);
+            type = visit(ctx.expr()); //this loads the value onto the stack
+            //now just store it in the alrady given slot basically
+            pushStoreIns(type.type , slot);
+        }else{ //declaration
+            String id = ctx.ID().getText();
+            String definedType = ctx.TYPE().getText();
+            type = visit(ctx.expr());
+            pushStoreIns(type.type , lastSlot);
+            //convert this to java bytecode
+            if (!TypedValue.typeString(type.type).equals(definedType)) {
+                throw new RuntimeException("cannot assign " + TypedValue.typeString(type.type) + " to an " + definedType);
+            }
+            memory.put(id, lastSlot);
+            lastSlot++; //use the next slot
+            TypedValue.Type varType = TypedValue.stringType(ctx.TYPE().getText());
+            types.put(id, varType);
         }
-        if (type.type == TypedValue.Type.INT) {
-            mv.visitVarInsn(Opcodes.ISTORE, lastSlot);
-        } else if (type.type == TypedValue.Type.STRING) {
-            mv.visitVarInsn(Opcodes.ASTORE, lastSlot);
-        } else if (type.type == TypedValue.Type.BOOL) { //the value will already be loaded for bull
-            mv.visitVarInsn(Opcodes.ISTORE, lastSlot);
-        }
-        memory.put(id, lastSlot);
-        lastSlot++; //use the next slot
-        TypedValue.Type varType = TypedValue.stringType(ctx.TYPE().getText());
-        types.put(id, varType);
         return type;
     }
 
@@ -114,12 +140,6 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         TypedValue left = visit(ctx.addexpr(0));
         TypedValue right = visit(ctx.addexpr(1));
         String op = ctx.getChild(1).getText();
-        Map<String, Integer> relationalOps = Map.of(
-                "<", Opcodes.IF_ICMPLT,
-                "<=", Opcodes.IF_ICMPLE,
-                ">", Opcodes.IF_ICMPGT,
-                ">=", Opcodes.IF_ICMPGE
-        );
         Integer opcode = relationalOps.get(op);
         if (opcode == null) {
             throw new RuntimeException("unknown relational operator");
@@ -141,18 +161,10 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
     public TypedValue visitEqualityexprForIf(QuarkParser.EqualityexprContext ctx, Label endLabel) { //endLabel is changed in the if visitor to point after the end of the if block
         // use asCondition to choose whether to emit a conditional jump or a push boolean
 
-        Map<String, Integer> invertedOps = Map.of(
-                "==", Opcodes.IF_ICMPNE,
-                "!=", Opcodes.IF_ICMPEQ,
-                "<", Opcodes.IF_ICMPGE,
-                "<=", Opcodes.IF_ICMPGT,
-                ">", Opcodes.IF_ICMPLE,
-                ">=", Opcodes.IF_ICMPLT
-        );
 
         if (ctx.getChildCount() == 1) {
             var relationalExprCtx = ctx.relationalexpr(0);
-            TypedValue type = visitRelationalExprForIf(relationalExprCtx, endLabel, invertedOps);
+            TypedValue type = visitRelationalExprForIf(relationalExprCtx, endLabel);
             return type;
         }
         TypedValue left = visit(ctx.relationalexpr(0));
@@ -164,8 +176,7 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         mv.visitJumpInsn(invertedOps.get(op), endLabel);
         return new TypedValue(TypedValue.Type.UNKNOWN, null);
     }
-
-    public TypedValue visitRelationalExprForIf(QuarkParser.RelationalexprContext ctx, Label endlabel, Map<String, Integer> invertedOps) {
+    public TypedValue visitRelationalExprForIf(QuarkParser.RelationalexprContext ctx, Label endlabel) {
         if (ctx.getChildCount() == 1) {
             //TODO: Idk what to do to be honest
         }
@@ -306,4 +317,56 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         //set the endlabel
         return type;
     }
+    public TypedValue visitRelationalExprForWhile(QuarkParser.RelationalexprContext ctx , Label endLabel){
+        if (ctx.getChildCount() == 1) {
+            //TODO: Idk what to do to be honest
+        }
+        TypedValue left = visit(ctx.addexpr(0));
+        TypedValue right = visit(ctx.addexpr(1));
+        String op = ctx.getChild(1).getText();
+        Integer opcode = invertedOps.get(op);
+        if (left.type != right.type) {
+            throw new RuntimeException("Cannot equate" + TypedValue.typeString(left.type) + " to " + TypedValue.typeString(right.type));
+        }
+        mv.visitJumpInsn(invertedOps.get(op),endLabel);
+        return new TypedValue(TypedValue.Type.UNKNOWN, null);
+    }
+
+    public TypedValue visitEqualityExprForWhile(QuarkParser.EqualityexprContext ctx , Label endLabel){
+        if(ctx.getChildCount() == 1) {
+            var relationalExprCtx = ctx.relationalexpr(0);
+            TypedValue type = visitRelationalExprForWhile(relationalExprCtx , endLabel);
+            return type;
+        }
+        TypedValue left = visit(ctx.relationalexpr(0));
+        TypedValue right = visit(ctx.relationalexpr(1));
+        if (left.type != right.type) {
+            throw new RuntimeException("Cannot equate" + TypedValue.typeString(left.type) + " to " + TypedValue.typeString(right.type));
+        }
+        String op = ctx.getChild(1).getText();
+        mv.visitJumpInsn(invertedOps.get(op),endLabel);
+        return new TypedValue(TypedValue.Type.UNKNOWN, null);
+    }
+
+    @Override
+    public TypedValue visitWhilestat(QuarkParser.WhilestatContext ctx) {
+        Label endLabel = new Label();
+        Label startLabel = new Label();
+
+        //set the start label
+        mv.visitLabel(startLabel);
+
+        //add the comparsion opcodes
+        var eq = ctx.expr().equalityexpr();
+        TypedValue type =  visitEqualityExprForWhile(eq , endLabel);
+        visit(ctx.block());
+
+        //add the infinite goto
+        mv.visitJumpInsn(Opcodes.GOTO,startLabel);
+
+        //add the infinite breaker endlabel
+        mv.visitLabel(endLabel);
+        return type;
+    }
+
 }

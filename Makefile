@@ -1,5 +1,5 @@
 BUILD_DIR := build
-.PHONY: all run clean
+.PHONY: all run clean antlr
 all: clean compile
 
 compile:
@@ -13,3 +13,8 @@ clean:
 run:
 	@java -cp "build:jars/*" Main $(input) -o $(output) 
 
+antlr:
+	@java -cp "/usr/local/lib/antlr-4.11.1-complete.jar" org.antlr.v4.Tool src/Quark.g4 -visitor 
+
+grun:
+	@java -cp "build:jars/antlr-4.11.1-complete.jar" org.antlr.v4.gui.TestRig Quark prog -gui

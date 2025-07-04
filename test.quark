@@ -1,7 +1,6 @@
-int x = 10
-print(x)
-if (x % 2 == 0) {
-    print("is even")
-}else{
-    print("is odd")
+int x = 1
+while(x <= 10){
+    print(x)
+    x = x + 1
 }
+print("guess which language just got loops")

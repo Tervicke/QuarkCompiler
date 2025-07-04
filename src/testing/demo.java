@@ -1,10 +1,8 @@
+import java.util.Scanner;
 class demo{
 	public static void main(String[] args){
-		boolean x = true;
-		if(x == true){
-			int z = 10;
-		}else{
-			int z = 20;
-		}
+		Scanner sc = new Scanner(System.in);
+		int input = sc.nextInt();
+		System.out.println(input);
 	}
 }
