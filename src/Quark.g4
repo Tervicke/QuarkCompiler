@@ -12,7 +12,7 @@ stat
 
 ;
 
-ifstatement: 'if' '(' expr ')' block ;
+ifstatement: 'if' '(' expr ')' block ('else' block )?;
 block: '{' stat* '}' ;
 
 assigstat : TYPE ID '=' ( expr) ;

@@ -292,12 +292,19 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
     public TypedValue visitIfstatement(QuarkParser.IfstatementContext ctx) {
         //manually bruteforce till the expr context for now
         var eq = ctx.expr().equalityexpr();
-        Label endLabel =  new Label();
-        TypedValue type = visitEqualityexprForIf(eq , endLabel);
-        visit(ctx.block());
-        // if ( expr )
-        //set the endlabel
+        Label elseLabel =  new Label();
+        Label endLabel = new Label();
+        TypedValue type = visitEqualityexprForIf(eq , elseLabel);
+        visit(ctx.block(0));
+        mv.visitJumpInsn(Opcodes.GOTO,endLabel);
+        //check if else statement exists
+        mv.visitLabel(elseLabel);
+        System.out.println(ctx.block().size());
+        if(ctx.block().size() > 1){ //true it exists
+            visit(ctx.block(1));
+        }
         mv.visitLabel(endLabel);
+        //set the endlabel
         return type;
     }
 }
