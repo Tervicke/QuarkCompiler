@@ -38,5 +38,4 @@ public class TypedValue {
     public static TypedValue voidtype() {
         return new TypedValue(Type.UNKNOWN, null);
     }
-
 }

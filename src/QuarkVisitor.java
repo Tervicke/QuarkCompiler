@@ -22,6 +22,42 @@ public interface QuarkVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitStat(QuarkParser.StatContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link QuarkParser#funcdefn}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFuncdefn(QuarkParser.FuncdefnContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link QuarkParser#paramlist}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitParamlist(QuarkParser.ParamlistContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link QuarkParser#param}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitParam(QuarkParser.ParamContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link QuarkParser#funccall}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFunccall(QuarkParser.FunccallContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link QuarkParser#arglist}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitArglist(QuarkParser.ArglistContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link QuarkParser#returnstat}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitReturnstat(QuarkParser.ReturnstatContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link QuarkParser#ifstatement}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

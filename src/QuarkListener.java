@@ -27,6 +27,66 @@ public interface QuarkListener extends ParseTreeListener {
 	 */
 	void exitStat(QuarkParser.StatContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link QuarkParser#funcdefn}.
+	 * @param ctx the parse tree
+	 */
+	void enterFuncdefn(QuarkParser.FuncdefnContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link QuarkParser#funcdefn}.
+	 * @param ctx the parse tree
+	 */
+	void exitFuncdefn(QuarkParser.FuncdefnContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link QuarkParser#paramlist}.
+	 * @param ctx the parse tree
+	 */
+	void enterParamlist(QuarkParser.ParamlistContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link QuarkParser#paramlist}.
+	 * @param ctx the parse tree
+	 */
+	void exitParamlist(QuarkParser.ParamlistContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link QuarkParser#param}.
+	 * @param ctx the parse tree
+	 */
+	void enterParam(QuarkParser.ParamContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link QuarkParser#param}.
+	 * @param ctx the parse tree
+	 */
+	void exitParam(QuarkParser.ParamContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link QuarkParser#funccall}.
+	 * @param ctx the parse tree
+	 */
+	void enterFunccall(QuarkParser.FunccallContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link QuarkParser#funccall}.
+	 * @param ctx the parse tree
+	 */
+	void exitFunccall(QuarkParser.FunccallContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link QuarkParser#arglist}.
+	 * @param ctx the parse tree
+	 */
+	void enterArglist(QuarkParser.ArglistContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link QuarkParser#arglist}.
+	 * @param ctx the parse tree
+	 */
+	void exitArglist(QuarkParser.ArglistContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link QuarkParser#returnstat}.
+	 * @param ctx the parse tree
+	 */
+	void enterReturnstat(QuarkParser.ReturnstatContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link QuarkParser#returnstat}.
+	 * @param ctx the parse tree
+	 */
+	void exitReturnstat(QuarkParser.ReturnstatContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link QuarkParser#ifstatement}.
 	 * @param ctx the parse tree
 	 */

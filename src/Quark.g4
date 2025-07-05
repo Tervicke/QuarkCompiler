@@ -8,10 +8,19 @@ stat
 | print=printstat
 | ifstatement
 | whilestat
+| funcdefn
+| funccall
+| returnstat
 | LineComment
 | NEWLINE
 
 ;
+funcdefn : 'fn' ID '(' paramlist? ')' ('->' TYPE)? block;
+paramlist: param (','  param)* ;
+param: TYPE ID ;
+funccall: ID '(' arglist? ')';
+arglist: expr (',' expr)* ;
+returnstat: 'return' expr? NEWLINE ;
 
 ifstatement: 'if' '(' expr ')' block ('else' block )?;
 block: '{' stat* '}' ;
@@ -40,6 +49,7 @@ atom : INT
 | STRING
 | TRUE
 | FALSE
+| funccall
 | '(' expr ')'
 
 ;

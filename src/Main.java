@@ -43,7 +43,7 @@ public class Main{
         mv.visitCode();
 
         //walk over the parse tree
-        Quark visitor = new Quark(cw,mv);
+        Quark visitor = new Quark(cw , mv , mv , output);
         visitor.visit(tree);
 
         //return from the main method
