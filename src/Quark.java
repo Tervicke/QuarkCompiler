@@ -420,7 +420,6 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
 
     @Override
     public TypedValue visitFuncdefn(QuarkParser.FuncdefnContext ctx) {
-        System.out.println("visitng func def");
         //collect the argumets defined in the function
         List<Type> paramList = new ArrayList<>();
         if(ctx.paramlist() != null){ //if there are parameters to the function
@@ -454,7 +453,6 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         //generate the function Id and also push it to the map of return types
         String functionId = makeFunctionId(ctx.ID().getText() , descriptor);
         functionReturnTypes.put(functionId , returnType);
-        System.out.println("put " + functionId);
 
 
         MethodVisitor newMethodVisitor = cw.visitMethod(
@@ -527,10 +525,6 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
 
         //generate the functionId
         String functionId = makeFunctionId(name , descriptor);
-        System.out.println(functionId);
-        System.out.println("---------------------------------------------");
-        System.out.println(functionReturnTypes);
-
         if(!functionReturnTypes.containsKey(functionId)){
             throw new RuntimeException("function not defined " + functionId);
         }
@@ -548,7 +542,6 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         );
         //converting it to string to convert it to TypedValue.Type org.asm.web -> string -> TypedValue.Type
         String strType = stringType.get(returnType);
-        System.out.println(strType);
         return new TypedValue(TypedValue.stringType(strType), null);
     }
 
