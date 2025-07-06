@@ -1,20 +1,2 @@
-print(x)
 int x = 10
-int x = 15
-int y = true
-
-fn foo() -> int {
-    return "error"
-}
-
-fn foo2(){
-    return 5
-}
-
-bar(15 , 20)
-
-fn foo3(int n) {
-    print(n)
-}
-
-foo3(4 , 5)
+print(x)
