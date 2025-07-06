@@ -17,6 +17,7 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
     private MethodVisitor currentMethodVisitor;
     private Scope global;
     private final String className;
+    final ErrorCollector errorCollector = new ErrorCollector();
 
     private final Map<String, Integer> intOpcodes = Map.of(
             "+", Opcodes.IADD,
@@ -103,7 +104,8 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         if(ctx.TYPE() == null){ //assigment
             String name = ctx.ID().getText();
             if( !scope.containsKey(name)){
-                throw new RuntimeException("Not recognized "+ name);
+                errorCollector.addError( ctx , "Not recognized '" + name + "'");
+                return TypedValue.voidtype();
             }
             VarInfo info = scope.get(name);
             int slot = info.slot;
@@ -117,7 +119,8 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
             pushStoreIns(type.type , scope.lastSlot);
             //convert this to java bytecode
             if (!TypedValue.typeString(type.type).equals(definedType)) {
-                throw new RuntimeException("cannot assign " + TypedValue.typeString(type.type) + " to an " + definedType);
+                errorCollector.addError(ctx , "cannot assign " + TypedValue.typeString(type.type) + " to an " + definedType);
+                return TypedValue.unknowntype();
             }
 
             TypedValue.Type varType = TypedValue.stringType(ctx.TYPE().getText());
@@ -142,7 +145,8 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         TypedValue left = visit(ctx.relationalexpr(0));
         TypedValue right = visit(ctx.relationalexpr(1));
         if (left.type != right.type) {
-            throw new RuntimeException("Cannot equate" + TypedValue.typeString(left.type) + " to " + TypedValue.typeString(right.type));
+            errorCollector.addError(ctx , "Cannot equate" + TypedValue.typeString(left.type) + " to " + TypedValue.typeString(right.type));
+            return TypedValue.unknowntype();
         }
         String op = ctx.getChild(1).getText();
         Label truelabel = new Label();
@@ -152,7 +156,8 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         } else if (op.equals("!=")) {
             currentMethodVisitor.visitJumpInsn(Opcodes.IF_ICMPNE, truelabel); //noequal
         } else {
-            throw new RuntimeException("unknown operation");
+            errorCollector.addError(ctx , "Unknown operation");
+            return TypedValue.unknowntype();
         }
         currentMethodVisitor.visitInsn(Opcodes.ICONST_0);
         currentMethodVisitor.visitJumpInsn(Opcodes.GOTO, endlabel);
@@ -172,7 +177,8 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         String op = ctx.getChild(1).getText();
         Integer opcode = relationalOps.get(op);
         if (opcode == null) {
-            throw new RuntimeException("unknown relational operator");
+            errorCollector.addError(ctx , "Unknown relational operator");
+            return TypedValue.unknowntype();
         }
         Label trueLabel = new Label();
         Label endLabel = new Label();
@@ -200,7 +206,8 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         TypedValue left = visit(ctx.relationalexpr(0));
         TypedValue right = visit(ctx.relationalexpr(1));
         if (left.type != right.type) {
-            throw new RuntimeException("Cannot equate" + TypedValue.typeString(left.type) + " to " + TypedValue.typeString(right.type));
+            errorCollector.addError(ctx , "Cannot equate" + TypedValue.typeString(left.type) + " to " + TypedValue.typeString(right.type));
+            return TypedValue.unknowntype();
         }
         String op = ctx.getChild(1).getText();
         currentMethodVisitor.visitJumpInsn(invertedOps.get(op), endLabel);
@@ -215,7 +222,8 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         String op = ctx.getChild(1).getText();
         Integer opcode = invertedOps.get(op);
         if (left.type != right.type) {
-            throw new RuntimeException("Cannot equate" + TypedValue.typeString(left.type) + " to " + TypedValue.typeString(right.type));
+            errorCollector.addError(ctx , "Cannot equate" + TypedValue.typeString(left.type) + " to " + TypedValue.typeString(right.type));
+            return TypedValue.unknowntype();
         }
         currentMethodVisitor.visitJumpInsn(opcode, endlabel);
         return new TypedValue(TypedValue.Type.UNKNOWN, null);
@@ -231,14 +239,17 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         String op = ctx.getChild(1).getText();
 
         if (type1.type != type2.type && type1.type == TypedValue.Type.INT) {
-            throw new RuntimeException("cannot " + TypedValue.typeString(type1.type) + " " + op + " " + TypedValue.typeString(type2.type));
+            errorCollector.addError(ctx , "Cannot equate" + TypedValue.typeString(type1.type) + " to " + TypedValue.typeString(type2.type));
+            return TypedValue.unknowntype();
         }
         //push the operation onto the stack
         //possible notifies whether we can calculate the values of type1 and type2 (none of them are returned as null
         if (intOpcodes.containsKey(op))
             currentMethodVisitor.visitInsn(intOpcodes.get(op));
-        else
-            throw new RuntimeException("Unknown operation");
+        else{
+            errorCollector.addError(ctx , "Unknown operation");
+            return TypedValue.unknowntype();
+        }
         boolean valueKnown = type1.value != null && type2.value != null;
         if (valueKnown) {
             BiFunction<Integer, Integer, Integer> operation = intOps.get(op);
@@ -258,14 +269,17 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         String op = ctx.getChild(1).getText();
 
         if (type1.type != type2.type && type1.type == TypedValue.Type.INT) {
-            throw new RuntimeException("cannot " + type1 + " " + op + " " + type2);
+            errorCollector.addError(ctx , "Cannot perform " + TypedValue.typeString(type1.type) + " " + op + TypedValue.typeString(type2.type) );
+            return TypedValue.unknowntype();
         }
         //push the operation onto the stack
         //possible notifies whether we can calculate the values of type1 and type2 (none of them are returned as null
         if (intOpcodes.containsKey(op))
             currentMethodVisitor.visitInsn(intOpcodes.get(op));
-        else
-            throw new RuntimeException("Unknown operation");
+        else{
+            errorCollector.addError(ctx , "Unknown operation");
+            return TypedValue.unknowntype();
+        }
         boolean valueKnown = type1.value != null && type2.value != null;
         if (valueKnown) {
             BiFunction<Integer, Integer, Integer> operation = intOps.get(op);
@@ -302,7 +316,8 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
                 //it returns a null because the value is in the jvm slot and cannot be retrieved , one way to solve that problem is obv to maintain another hashmap with its values , seems unreasonable just yet
                 return new TypedValue(type, null);
             }
-            throw new RuntimeException("Not recognized: " + ctx.ID());
+            errorCollector.addError( ctx , "Not recognized '" + ctx.ID() + "'");
+            return TypedValue.unknowntype();
         } else if (ctx.TRUE() != null) {
             currentMethodVisitor.visitInsn(Opcodes.ICONST_1);
             return new TypedValue(TypedValue.Type.BOOL,true);
@@ -317,9 +332,6 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
 
     @Override
     public TypedValue visitPrintstat(QuarkParser.PrintstatContext ctx) {
-        if(ctx.expr() == null){
-            throw new RuntimeException("expr in ctx null");
-        }
         //replace with the jvm instruction to load the print class
         currentMethodVisitor.visitFieldInsn(Opcodes.GETSTATIC,"java/lang/System","out","Ljava/io/PrintStream;");
         TypedValue type = visit(ctx.expr());
@@ -359,7 +371,8 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         String op = ctx.getChild(1).getText();
         Integer opcode = invertedOps.get(op);
         if (left.type != right.type) {
-            throw new RuntimeException("Cannot equate" + TypedValue.typeString(left.type) + " to " + TypedValue.typeString(right.type));
+            errorCollector.addError(ctx , "Cannot equate" + TypedValue.typeString(left.type) + " to " + TypedValue.typeString(right.type));
+            return TypedValue.unknowntype();
         }
         currentMethodVisitor.visitJumpInsn(invertedOps.get(op),endLabel);
         return new TypedValue(TypedValue.Type.UNKNOWN, null);
@@ -374,7 +387,8 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         TypedValue left = visit(ctx.relationalexpr(0));
         TypedValue right = visit(ctx.relationalexpr(1));
         if (left.type != right.type) {
-            throw new RuntimeException("Cannot equate" + TypedValue.typeString(left.type) + " to " + TypedValue.typeString(right.type));
+            errorCollector.addError(ctx , "Cannot equate" + TypedValue.typeString(left.type) + " to " + TypedValue.typeString(right.type));
+            return TypedValue.unknowntype();
         }
         String op = ctx.getChild(1).getText();
         currentMethodVisitor.visitJumpInsn(invertedOps.get(op),endLabel);
@@ -428,7 +442,8 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
                 String typeName = param.TYPE().getText();
                 Type paramType = javaType.get(typeName);
                 if (paramType == null) {
-                    throw new RuntimeException("Unknown type: " + typeName);
+                    errorCollector.addError(ctx , "Unknown type " + typeName);
+                    return TypedValue.unknowntype();
                 }
                 //paramList.add(javaType.get( param.TYPE().getText()) ); //add the parameter type to the paramList
                 paramList.add(paramType);
@@ -498,7 +513,8 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         }
 
         if(actualReturnType.type != definedReturnType){
-            throw new RuntimeException("Return types did not match for for the function " + ctx.ID().getText());
+            errorCollector.addError(ctx , "Return types did not match for the function '" + ctx.ID().getText() + "()'");
+            return TypedValue.unknowntype();
         }
 
         //reset currentMethodVisitor
@@ -542,7 +558,8 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         //generate the functionId
         String functionId = makeFunctionId(name , descriptor);
         if(!functionReturnTypes.containsKey(functionId)){
-            throw new RuntimeException("function not defined " + functionId);
+            errorCollector.addError(ctx , "function not defined '" + name + "()'");
+            return TypedValue.unknowntype();
         }
         Type returnType = functionReturnTypes.get(functionId);
         descriptor = Type.getMethodDescriptor(
@@ -572,7 +589,7 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
             }else if(type.type == TypedValue.Type.STRING){
                 currentMethodVisitor.visitInsn(Opcodes.ARETURN); //  ref return
             }else{
-                throw new RuntimeException("unknown value returned");
+                errorCollector.addError(ctx , "Unknown value returned");
             }
             return type;
         }else{

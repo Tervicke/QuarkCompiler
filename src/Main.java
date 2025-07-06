@@ -53,6 +53,11 @@ public class Main{
         mv.visitMaxs(-1,-1);
         mv.visitEnd();
         cw.visitEnd();
+        if(visitor.errorCollector.hasErrors()){
+            System.out.println("Error occured when compiling " + filename);
+            visitor.errorCollector.reportAll();
+            System.exit(1);
+        }
         byte[] bytecode = cw.toByteArray();
         String inputFile = args[0];
         String classFile = output + ".class";

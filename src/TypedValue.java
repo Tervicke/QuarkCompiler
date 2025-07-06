@@ -44,6 +44,11 @@ public class TypedValue {
     public static TypedValue voidtype() {
         return new TypedValue(Type.VOID, null);
     }
+
+    public static TypedValue unknowntype() {
+        return new TypedValue(Type.UNKNOWN, null);
+    }
+
     public static org.objectweb.asm.Type TypeTOASMType(Type type){
         switch(type){
             case INT:
