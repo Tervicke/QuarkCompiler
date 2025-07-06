@@ -1,6 +1,8 @@
+import org.objectweb.asm.Type;
+
 public class TypedValue {
     public enum Type{
-        INT , STRING , BOOL , UNKNOWN ,
+        INT , STRING , BOOL , UNKNOWN , VOID
     };
 
     public final Type type;
@@ -18,6 +20,8 @@ public class TypedValue {
                 return "string";
             case BOOL:
                 return "bool";
+            case VOID:
+                return "void";
             default:
                 return "unknown";
         }
@@ -30,12 +34,28 @@ public class TypedValue {
                 return Type.STRING;
             case "bool":
                 return Type.BOOL;
+            case "void":
+                return Type.VOID;
             default:
                 return Type.UNKNOWN;
 
         }
     }
     public static TypedValue voidtype() {
-        return new TypedValue(Type.UNKNOWN, null);
+        return new TypedValue(Type.VOID, null);
+    }
+    public static org.objectweb.asm.Type TypeTOASMType(Type type){
+        switch(type){
+            case INT:
+                return org.objectweb.asm.Type.INT_TYPE;
+            case STRING:
+                return org.objectweb.asm.Type.getType(String.class);
+            case BOOL:
+                return org.objectweb.asm.Type.BOOLEAN_TYPE;
+            case VOID:
+                return org.objectweb.asm.Type.VOID_TYPE;
+            default:
+                return org.objectweb.asm.Type.VOID_TYPE;
+        }
     }
 }

@@ -1,9 +1,8 @@
-fn fact(int n) -> int {
-    if(n == 1) {
-        return 1
-    }
-    return n * fact(n - 1)
+fn test() -> int{
+    return 100
+}
+fn test1(){
+    return test()
 }
 
-int ans = fact(5)
-print(ans)
+print(test1())

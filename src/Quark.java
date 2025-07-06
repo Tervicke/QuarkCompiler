@@ -438,21 +438,22 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         Type[] args = paramList.toArray(new Type[0]); //convert paramlist to the list of arguments
 
         //get the return type
-        Type returnType;
+        TypedValue.Type definedReturnType;
         if(ctx.TYPE() != null){
-            returnType = javaType.get(ctx.TYPE().getText());
+            definedReturnType = TypedValue.stringType(ctx.TYPE().getText());
         }else{
-            returnType = javaType.get("void");
+            definedReturnType = TypedValue.Type.VOID;
         }
+        Type definedASMReturnType = TypedValue.TypeTOASMType(definedReturnType);
         String descriptor = Type.getMethodDescriptor(
-                returnType,
+                definedASMReturnType,
                 args
         );
 
         //register the function before traversing the function since doing it later can cause errors in recursion
         //generate the function Id and also push it to the map of return types
         String functionId = makeFunctionId(ctx.ID().getText() , descriptor);
-        functionReturnTypes.put(functionId , returnType);
+        functionReturnTypes.put(functionId , definedASMReturnType);
 
 
         MethodVisitor newMethodVisitor = cw.visitMethod(
@@ -483,7 +484,22 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         }
 
         //visit the block after changing currentMethodVisitor
-        visit(ctx.block());
+        //visit(ctx.block());
+
+        //visit every stat while checking if there exists a return statement and if it does then capture the return type to verify it later
+        TypedValue actualReturnType = new TypedValue(TypedValue.Type.VOID , null);
+        //try to get the return type
+        for(var stat : ctx.block().stat()){
+            if(stat.returnstat() != null){
+                actualReturnType = visit(stat.returnstat());
+            }else{
+                visit(stat);
+            }
+        }
+
+        if(actualReturnType.type != definedReturnType){
+            throw new RuntimeException("Return types did not match for for the function " + ctx.ID().getText());
+        }
 
         //reset currentMethodVisitor
         currentMethodVisitor = mainVisitor;
@@ -558,9 +574,10 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
             }else{
                 throw new RuntimeException("unknown value returned");
             }
+            return type;
         }else{
             currentMethodVisitor.visitInsn(Opcodes.RETURN); //add the most minimal return
+            return TypedValue.voidtype();
         }
-        return TypedValue.voidtype();
     }
 }
