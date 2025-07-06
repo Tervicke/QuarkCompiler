@@ -88,7 +88,7 @@ public class Main{
             if(visitor.errorCollector.hasErrors()){
                 System.out.println("Error occured when compiling " + filename);
                 visitor.errorCollector.reportAll();
-                System.exit(1);
+                continue;
             }
 
             //finish up the MethodVisitor and ClassWriter
