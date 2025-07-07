@@ -16,14 +16,10 @@ make all
 
 run the file
 ```
-make run input=examples/ifelse.quark
-```
-To get a custom name of the output file
-```
-make run input=examples/ifelse.quark output=mycustom`
+make run input=examples/factorial.quark
 ```
 run the binary
 ```
-java output
+java examples/factorial 
 ```
 ## see more [examples](examples/) 
