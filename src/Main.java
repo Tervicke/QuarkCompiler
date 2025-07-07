@@ -13,43 +13,22 @@ import java.nio.file.Paths;
 import java.util.*;
 
 public class Main{
-    private static List<String> inputFiles = new ArrayList<>();
-    private static List<String> outputFiles = new ArrayList<>();
-    private static Map<String , List<String>> graph = new HashMap<>();
-    private static Set<String> modules  = new HashSet<>();
-    private static List<String> order = new ArrayList<>();
-    public static void parseArgs(String[] args){
-        boolean isInput = true;
-        for(String argument : args){
-
-            if(argument.equals("-i")){
-                isInput = true;
-                continue;
-            }
-            if(argument.equals("-o")){
-                isInput = false;
-                continue;
-            }
-
-            if(isInput){
-                inputFiles.add(argument);
-            }else{
-                outputFiles.add(argument);
-            }
-        }
-    }
+    private static final Map<String , List<String>> graph = new HashMap<>();
+    private static final Set<String> modules  = new HashSet<>();
+    private static final List<String> order = new ArrayList<>();
     public static void main(String[]args) throws IOException {
         String inputFile = args[0];
 
         generateGraph( inputFile ); // this should reorder the input files according to topology graph
 
+        System.out.println(graph);
+
         //topologically sort graph
         topSortGraph();
 
-        for(int i = 0 ; i < order.size() ; i++){
+        for (String s : order) {
             //get the path
-            String filename = order.get(i) + ".quark";
-            String output = order.get(i);
+            String filename = s + ".quark";
             Path filepath = Paths.get(filename);
 
             //setup antlr parser
@@ -61,7 +40,7 @@ public class Main{
 
             //generate the classWriter cw
             ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
-            cw.visit(Opcodes.V1_7 ,Opcodes.ACC_PUBLIC, output , null , "java/lang/Object" , null);
+            cw.visit(Opcodes.V1_7, Opcodes.ACC_PUBLIC, s, null, "java/lang/Object", null);
 
 
             MethodVisitor mv = cw.visitMethod(
@@ -73,16 +52,16 @@ public class Main{
             );
             mv.visitCode();
 
-            Quark visitor = new Quark(cw , mv , mv , output);
+            Quark visitor = new Quark(cw, mv, mv, s);
             visitor.visit(tree);
 
             //end the main method
             mv.visitInsn(Opcodes.RETURN);
-            mv.visitMaxs(-1,-1);
+            mv.visitMaxs(-1, -1);
             mv.visitEnd();
             cw.visitEnd();
 
-            if(visitor.errorCollector.hasErrors()){
+            if (visitor.errorCollector.hasErrors()) {
                 System.out.println("Error occured when compiling " + filename);
                 visitor.errorCollector.reportAll();
                 continue;
@@ -91,9 +70,9 @@ public class Main{
             //finish up the MethodVisitor and ClassWriter
             byte[] bytecode = cw.toByteArray();
             inputFile = args[0];
-            String classFile = output + ".class";
-            System.out.println("compiled " + filename  + " and generated " + classFile);
-            Files.write(Paths.get(classFile),bytecode);
+            String classFile = s + ".class";
+            System.out.println("compiled " + filename + " and generated " + classFile);
+            Files.write(Paths.get(classFile), bytecode);
         }
 
     }

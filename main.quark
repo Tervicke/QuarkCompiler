@@ -1,4 +1,7 @@
-import test1
+import test
 
-test.testfunc()
-test1.test1func()
+fn hello(){
+    test.func()
+}
+
+hello()
