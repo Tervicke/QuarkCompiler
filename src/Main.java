@@ -23,6 +23,16 @@ public class Main{
 
         System.out.println(graph);
 
+        Set<String> visited = new HashSet<>();
+        Set<String> recStack = new HashSet<>();
+
+        if (detectCycle(stripExtension(inputFile) , visited , recStack)){
+            ErrorCollector ec = new ErrorCollector();
+            ec.printError("Compilation Failed Circular dependency detected");
+            System.exit(1);
+        }
+
+
         //topologically sort graph
         topSortGraph();
 
@@ -95,7 +105,21 @@ public class Main{
             dfs(module , visited );
         }
     }
-
+    public static boolean detectCycle(String node , Set<String> visited , Set<String> recStack){
+        visited.add(node);
+        recStack.add(node);
+        for(String neighbour : graph.get(node)){
+            if(!visited.contains(neighbour)){
+                if(detectCycle(neighbour , visited , recStack)){
+                    return true;
+                }
+            }else if(recStack.contains(neighbour)){
+                return true;
+            }
+        }
+        recStack.remove(node);
+        return false;
+    }
     public static void generateGraph(String inputfileName) throws IOException {
         Set<String> visited = new HashSet<>();
         Deque<String> stack = new ArrayDeque<>();

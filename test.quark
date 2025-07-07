@@ -1,3 +1,6 @@
-import main
 
-main.hello()
+fn func(){
+    print("hello from test")
+}
+
+print("i am in the test file")
