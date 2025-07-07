@@ -1,0 +1,4 @@
+import test1
+
+test.testfunc()
+test1.test1func()

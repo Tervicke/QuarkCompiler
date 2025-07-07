@@ -1,3 +1,3 @@
-fn foo() -> int{
-    return 15
+fn test1func(){
+    print("hello from test1")
 }

@@ -10,13 +10,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class Main{
     private static List<String> inputFiles = new ArrayList<>();
     private static List<String> outputFiles = new ArrayList<>();
-
+    private static Map<String , List<String>> graph = new HashMap<>();
+    private static Set<String> modules  = new HashSet<>();
+    private static List<String> order = new ArrayList<>();
     public static void parseArgs(String[] args){
         boolean isInput = true;
         for(String argument : args){
@@ -38,21 +39,17 @@ public class Main{
         }
     }
     public static void main(String[]args) throws IOException {
-        if(args.length < 1){
-            throw new RuntimeException("No input file provided");
-        }
+        String inputFile = args[0];
 
-        if(inputFiles.size() != outputFiles.size()){
-            throw new RuntimeException("input files and output file number does not match");
-        }
+        generateGraph( inputFile ); // this should reorder the input files according to topology graph
 
-        //parse the arguments
-        parseArgs(args);
+        //topologically sort graph
+        topSortGraph();
 
-        for(int i = 0 ; i < inputFiles.size() ; i++){
-            String filename = inputFiles.get(i);
-            String output = outputFiles.get(i);
+        for(int i = 0 ; i < order.size() ; i++){
             //get the path
+            String filename = order.get(i) + ".quark";
+            String output = order.get(i);
             Path filepath = Paths.get(filename);
 
             //setup antlr parser
@@ -93,11 +90,83 @@ public class Main{
 
             //finish up the MethodVisitor and ClassWriter
             byte[] bytecode = cw.toByteArray();
-            String inputFile = args[0];
+            inputFile = args[0];
             String classFile = output + ".class";
-            System.out.println("generated " + classFile);
+            System.out.println("compiled " + filename  + " and generated " + classFile);
             Files.write(Paths.get(classFile),bytecode);
         }
 
     }
+    private static void dfs(String currentNode ,  Set<String> visited ){
+        //make the current node
+        visited.add(currentNode);
+        for(String node : graph.get(currentNode)){
+            if(visited.contains(node)) continue;
+            dfs(node , visited);
+        }
+        order.add(currentNode);
+    }
+    private static void topSortGraph() {
+        //to store the visited node
+        Set<String> visited = new HashSet<>();
+        List<String> order = new ArrayList<>();
+
+        for(String module : modules){
+            if(visited.contains(module)) continue;
+            dfs(module , visited );
+        }
+    }
+
+    public static void generateGraph(String inputfileName) throws IOException {
+        Set<String> visited = new HashSet<>();
+        Deque<String> stack = new ArrayDeque<>();
+
+        stack.push(stripExtension(inputfileName)); //push the initial file
+
+        while(!stack.isEmpty()){
+
+            String module = stack.pop();
+            if (visited.contains(module)) continue;
+            visited.add(module);
+
+            Path filePath = Path.of(module + ".quark");
+            if(!Files.exists(filePath)){
+                System.out.println("Module not found" + module);
+                continue;
+            }
+
+            CharStream input = CharStreams.fromPath(filePath);
+            QuarkLexer lexer = new QuarkLexer(input);
+            CommonTokenStream tokens = new CommonTokenStream(lexer);
+            QuarkParser parser = new QuarkParser(tokens);
+            ParseTree tree = parser.prog();
+            ImportCollector collector = new ImportCollector();
+
+            collector.visit(tree);
+            List<String> imports = collector.imports;
+            graph.put(module, imports);
+            for(String imp : imports){
+                stack.push(imp);
+            }
+        }
+
+        //add the visited to the modules indicating the total modules
+        modules.addAll(visited);
+    }
+    static String stripExtension(String filename){
+        return filename.endsWith(".quark")
+                ? filename.substring(0, filename.length() - 6)
+                : filename;
+    }
+
+    static class ImportCollector extends QuarkBaseVisitor<Void>{
+        List<String> imports = new ArrayList<>();
+        @Override
+        public Void visitImportstat(QuarkParser.ImportstatContext ctx) {
+            String moduleName = ctx.ID().getText();
+            imports.add(moduleName);
+            return null;
+        }
+    }
+
 }

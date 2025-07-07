@@ -23,7 +23,6 @@ public class ModuleInfoExtractor {
                     String descWithoutReturn = stripReturn(desc);
                     Type returnType = mapReturn(extractReturn(desc));
                     String functionId = className  + ":" + name + ":" + descWithoutReturn;
-                    System.out.println(functionId + " " + returnType);
                     result.put(functionId, returnType);
             }
 
@@ -45,7 +44,6 @@ public class ModuleInfoExtractor {
     }
     private static Type mapReturn(String desc) {
         Type returnType;
-        System.out.println(desc);
         switch (desc) {
             case "V":
                 returnType = Type.VOID_TYPE;

@@ -560,7 +560,6 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
             errorCollector.addError(ctx,"No function found " + functionName + "() in Module " + moduleName);
             return TypedValue.voidtype();
         }
-        System.out.println(functionReturnTypes);
         Type returnType = functionReturnTypes.get(functionId);
         Type[] functionArguments = ASMTypeArgs.toArray(new Type[0]);
 
