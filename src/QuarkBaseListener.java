@@ -112,6 +112,18 @@ public class QuarkBaseListener implements QuarkListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterImportstat(QuarkParser.ImportstatContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitImportstat(QuarkParser.ImportstatContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterIfstatement(QuarkParser.IfstatementContext ctx) { }
 	/**
 	 * {@inheritDoc}

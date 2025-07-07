@@ -1,17 +1,20 @@
 import org.objectweb.asm.*;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.function.BiFunction;
 
 public class Quark extends QuarkBaseVisitor<TypedValue> {
-//    Map<String, Integer> memory = new HashMap<>(); //this will store the id to the slot
- //   Map<String, TypedValue.Type> types = new HashMap<>();
-    Set<String> functionData = new HashSet<String>(); //this stores the function data and the descriptor in the format funcName:Descriptor
-    Map<String , Type> functionReturnTypes = new HashMap<>(); //this stores the functionId (which is name : descriptor without the return type ) and the return Type associated with the function
+    //function Id is a special and unique type of Id that is generated in the following way
+    //moduleName:functionName:descriptorWithoutReturnType
+    //the map stores the functionReturnTypes stores the functionId -> return Type where Type is a ASM type
+    Map<String , Type> functionReturnTypes = new HashMap<>();
     private Scope scope;
     Map<MethodVisitor , Scope> scopes = new HashMap<>();
 
-  //  int lastSlot = 0;
+    //store all the imports
+    private final Set<String> imports = new HashSet<>();
+
     private final ClassWriter cw;
     private final MethodVisitor mainVisitor;
     private MethodVisitor currentMethodVisitor;
@@ -425,7 +428,7 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
             scope = newScope;
         }
     }
-    public String makeFunctionId(String name, String descriptor) {
+    public String makeFunctionId(String moduleName, String name, String descriptor) {
         // Remove the return type from the descriptor
         int returnStart = descriptor.lastIndexOf(')') + 1;
         String withoutReturn = descriptor.substring(0, returnStart);
@@ -467,7 +470,7 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
 
         //register the function before traversing the function since doing it later can cause errors in recursion
         //generate the function Id and also push it to the map of return types
-        String functionId = makeFunctionId(ctx.ID().getText() , descriptor);
+        String functionId = makeFunctionId(className , ctx.ID().getText() , descriptor);
         functionReturnTypes.put(functionId , definedASMReturnType);
 
 
@@ -531,8 +534,61 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         return TypedValue.voidtype();
     }
 
+    //used to run the module function call
+    public TypedValue visitModuleFuncCall(QuarkParser.FunccallContext ctx){
+        String moduleName = ctx.modulename.getText();
+        String functionName = ctx.functionname.getText();
+        if(!imports.contains(moduleName)){
+            errorCollector.addError(ctx , "Did not find Module '" + moduleName + "'");
+            return TypedValue.voidtype();
+        }
+        //u have to load the value onto the stack to call the function later on , and also extract it for generate the descriptor
+        StringBuilder descriptorBuilder = new StringBuilder("(");
+        List<Type> ASMTypeArgs = new ArrayList<>();
+        if(ctx.arglist() != null){
+            var argList = ctx.arglist();
+            for(var argument :argList.expr()){
+                TypedValue type = visit(argument);   //visit the argument and get the type
+                ASMTypeArgs.add(TypedValue.TypeTOASMType(type.type));
+                descriptorBuilder.append(type.getDescriptorFromType());
+            }
+        }
+        descriptorBuilder.append(")");
+        String descriptor = descriptorBuilder.toString();
+        String functionId = moduleName + ":" +functionName + ":" + descriptor;
+        if(!functionReturnTypes.containsKey(functionId)){
+            errorCollector.addError(ctx,"No function found " + functionName + "() in Module " + moduleName);
+            return TypedValue.voidtype();
+        }
+        System.out.println(functionReturnTypes);
+        Type returnType = functionReturnTypes.get(functionId);
+        Type[] functionArguments = ASMTypeArgs.toArray(new Type[0]);
+
+        //get the descriptor with the return value
+        descriptor = Type.getMethodDescriptor(
+                returnType,
+                functionArguments
+        );
+        //invoke the method
+        currentMethodVisitor.visitMethodInsn(
+                Opcodes.INVOKESTATIC,
+                moduleName,
+                functionName,
+                descriptor
+        );
+
+        //converting it to string to convert it to TypedValue.Type org.asm.web -> string -> TypedValue.Type
+        String strType = stringType.get(returnType);
+        return new TypedValue(TypedValue.stringType(strType), null);
+    }
     @Override
     public TypedValue visitFunccall(QuarkParser.FunccallContext ctx) {
+        //differenitiate between a module function and a normal function
+        if(ctx.modulename != null){
+            return visitModuleFuncCall(ctx);
+        }
+        //LOCAL FUNCTION  CALL
+
         //try to load all the values on the stack before calling the invoke static
         List<Type> argsList= new ArrayList<>();
         if(ctx.arglist() != null){
@@ -547,7 +603,7 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         //get the array
         Type[] args =  argsList.toArray(new Type[0]);
 
-        String name = ctx.ID().getText();
+        String name = ctx.ID(0).getText();
 
         //get the temporary descriptor with a temporary return value since it wont be used regardless when generating the function ID
         String descriptor = Type.getMethodDescriptor(
@@ -556,7 +612,7 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         );
 
         //generate the functionId
-        String functionId = makeFunctionId(name , descriptor);
+        String functionId = makeFunctionId(className , name , descriptor);
         if(!functionReturnTypes.containsKey(functionId)){
             errorCollector.addError(ctx , "function not defined '" + name + "()'");
             return TypedValue.unknowntype();
@@ -596,5 +652,25 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
             currentMethodVisitor.visitInsn(Opcodes.RETURN); //add the most minimal return
             return TypedValue.voidtype();
         }
+    }
+
+    @Override
+    public TypedValue visitImportstat(QuarkParser.ImportstatContext ctx) {
+        String moduleName = ctx.ID().getText();
+        if(imports.contains(moduleName)){
+            return TypedValue.voidtype();
+        }
+        imports.add(moduleName);
+
+        //get the functionId map from the ModuleInfoExtractor
+        try {
+            var result = ModuleInfoExtractor.extractInfoFromClass(moduleName);
+            functionReturnTypes.putAll(result);
+        }catch (Exception e){
+            System.out.println(e);
+        }
+        //generate the function Id and get all the
+
+        return TypedValue.voidtype();
     }
 }

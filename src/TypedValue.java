@@ -63,4 +63,20 @@ public class TypedValue {
                 return org.objectweb.asm.Type.VOID_TYPE;
         }
     }
+    public String getDescriptorFromType(){
+        String str;
+        switch(this.type){
+            case INT:
+                str = "I";
+            case STRING:
+                str = "Ljava/lang/String";
+            case BOOL:
+                str = "Z";
+            case VOID:
+                str = "V";
+            default:
+                str = "Ljava/lang/Object";
+        };
+        return str;
+    }
 }

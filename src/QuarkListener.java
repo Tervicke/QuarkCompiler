@@ -87,6 +87,16 @@ public interface QuarkListener extends ParseTreeListener {
 	 */
 	void exitReturnstat(QuarkParser.ReturnstatContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link QuarkParser#importstat}.
+	 * @param ctx the parse tree
+	 */
+	void enterImportstat(QuarkParser.ImportstatContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link QuarkParser#importstat}.
+	 * @param ctx the parse tree
+	 */
+	void exitImportstat(QuarkParser.ImportstatContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link QuarkParser#ifstatement}.
 	 * @param ctx the parse tree
 	 */

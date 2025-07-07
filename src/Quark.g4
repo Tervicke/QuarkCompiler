@@ -11,6 +11,7 @@ stat
 | funcdefn
 | funccall
 | returnstat
+| importstat
 | LineComment
 | NEWLINE
 
@@ -18,9 +19,10 @@ stat
 funcdefn : 'fn' ID '(' paramlist? ')' ('->' TYPE)? block;
 paramlist: param (','  param)* ;
 param: TYPE ID ;
-funccall: ID '(' arglist? ')';
+funccall: (modulename=ID '.')? functionname=ID '(' arglist? ')';
 arglist: expr (',' expr)* ;
 returnstat: 'return' expr? NEWLINE ;
+importstat: 'import' ID ;
 
 ifstatement: 'if' '(' expr ')' block ('else' block )?;
 block: '{' stat* '}' ;

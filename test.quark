@@ -1,2 +1,7 @@
-int x = 10
-print(x)
+import test1
+
+//this will import the function foo from the test1.quark file and call it
+int ans = test1.foo()
+
+print(ans)
+//prints 15
