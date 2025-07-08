@@ -35,14 +35,18 @@ public class Main{
 
         //topologically sort graph
         topSortGraph();
+        System.out.println(order);
 
         for (String s : order) {
             //get the path
-            String filename = s + ".quark";
-            Path filepath = Paths.get(filename);
+            Path inputPath = Paths.get(s + ".quark");
+            String fileName = inputPath.getFileName().toString();                  // "fib.quark"
+            String className = fileName.replaceFirst("\\.quark$", "");             // "fib"
+            Path outputPath = inputPath.resolveSibling(className + ".class");      // "examples/fib.class"
+
 
             //setup antlr parser
-            CharStream input = CharStreams.fromPath(filepath);
+            CharStream input = CharStreams.fromPath(inputPath);
             QuarkLexer lexer = new QuarkLexer(input);
             CommonTokenStream tokens = new CommonTokenStream(lexer);
             QuarkParser parser = new QuarkParser(tokens);
@@ -50,7 +54,7 @@ public class Main{
 
             //generate the classWriter cw
             ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
-            cw.visit(Opcodes.V1_7, Opcodes.ACC_PUBLIC, s, null, "java/lang/Object", null);
+            cw.visit(Opcodes.V1_7, Opcodes.ACC_PUBLIC, className, null, "java/lang/Object", null);
 
 
             MethodVisitor mv = cw.visitMethod(
@@ -72,7 +76,7 @@ public class Main{
             cw.visitEnd();
 
             if (visitor.errorCollector.hasErrors()) {
-                System.out.println("Error occured when compiling " + filename);
+                System.out.println("Error occured when compiling " + inputPath.toString());
                 visitor.errorCollector.reportAll();
                 continue;
             }
@@ -80,9 +84,8 @@ public class Main{
             //finish up the MethodVisitor and ClassWriter
             byte[] bytecode = cw.toByteArray();
             inputFile = args[0];
-            String classFile = s + ".class";
-            System.out.println("compiled " + filename + " and generated " + classFile);
-            Files.write(Paths.get(classFile), bytecode);
+            System.out.println("compiled " + s + ".quark" + " and generated " + outputPath);
+            Files.write(Paths.get(outputPath.toString()), bytecode);
         }
 
     }
