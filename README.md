@@ -16,10 +16,10 @@ make all
 
 run the file
 ```
-make run input=examples/factorial.quark
+make run input=examples/structs.quark
 ```
 run the binary
 ```
-java examples/factorial 
+java -cp examples structs 
 ```
 ## see more [examples](examples/) 
