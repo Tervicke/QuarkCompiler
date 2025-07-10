@@ -2,16 +2,23 @@ import org.objectweb.asm.Type;
 
 public class TypedValue {
     public enum Type{
-        INT , STRING , BOOL , UNKNOWN , VOID
+        INT , STRING , BOOL , UNKNOWN , VOID , STRUCT
     };
 
     public final Type type;
     public final Object value;
+    public String id = "not specified"; //id is used by structs to return the type of struct
 
     public TypedValue(Type type , Object value) {
         this.type = type;
         this.value = value;
     }
+    public TypedValue(Type type , Object value , String id) {
+        this.type = type;
+        this.value = value;
+        this.id = id;
+    }
+
     public static String typeString(Type type){
         switch(type){
             case INT:
@@ -68,15 +75,40 @@ public class TypedValue {
         switch(this.type){
             case INT:
                 str = "I";
+                break;
             case STRING:
                 str = "Ljava/lang/String";
+                break;
             case BOOL:
                 str = "Z";
+                break;
             case VOID:
                 str = "V";
+                break;
             default:
                 str = "Ljava/lang/Object";
         };
         return str;
+    }
+
+    public static String getDescriptorFromString(String str){
+        String res;
+        switch(str){
+            case "int":
+                res = "I";
+                break;
+            case "string":
+                res = "Ljava/lang/String;";
+                break;
+            case "bool":
+                res = "Z";
+                break;
+            case "void":
+                res = "V";
+                break;
+            default:
+                res = "Ljava/lang/Object";
+        };
+        return res;
     }
 }

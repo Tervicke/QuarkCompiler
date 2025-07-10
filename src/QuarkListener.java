@@ -97,6 +97,46 @@ public interface QuarkListener extends ParseTreeListener {
 	 */
 	void exitImportstat(QuarkParser.ImportstatContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link QuarkParser#definestructstat}.
+	 * @param ctx the parse tree
+	 */
+	void enterDefinestructstat(QuarkParser.DefinestructstatContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link QuarkParser#definestructstat}.
+	 * @param ctx the parse tree
+	 */
+	void exitDefinestructstat(QuarkParser.DefinestructstatContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link QuarkParser#structstats}.
+	 * @param ctx the parse tree
+	 */
+	void enterStructstats(QuarkParser.StructstatsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link QuarkParser#structstats}.
+	 * @param ctx the parse tree
+	 */
+	void exitStructstats(QuarkParser.StructstatsContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link QuarkParser#structfield}.
+	 * @param ctx the parse tree
+	 */
+	void enterStructfield(QuarkParser.StructfieldContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link QuarkParser#structfield}.
+	 * @param ctx the parse tree
+	 */
+	void exitStructfield(QuarkParser.StructfieldContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link QuarkParser#declarestruct}.
+	 * @param ctx the parse tree
+	 */
+	void enterDeclarestruct(QuarkParser.DeclarestructContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link QuarkParser#declarestruct}.
+	 * @param ctx the parse tree
+	 */
+	void exitDeclarestruct(QuarkParser.DeclarestructContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link QuarkParser#ifstatement}.
 	 * @param ctx the parse tree
 	 */
@@ -196,6 +236,26 @@ public interface QuarkListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitMulexpr(QuarkParser.MulexprContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link QuarkParser#fieldaccess}.
+	 * @param ctx the parse tree
+	 */
+	void enterFieldaccess(QuarkParser.FieldaccessContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link QuarkParser#fieldaccess}.
+	 * @param ctx the parse tree
+	 */
+	void exitFieldaccess(QuarkParser.FieldaccessContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link QuarkParser#access}.
+	 * @param ctx the parse tree
+	 */
+	void enterAccess(QuarkParser.AccessContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link QuarkParser#access}.
+	 * @param ctx the parse tree
+	 */
+	void exitAccess(QuarkParser.AccessContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link QuarkParser#atom}.
 	 * @param ctx the parse tree

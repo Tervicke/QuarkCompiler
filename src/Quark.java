@@ -1,6 +1,12 @@
 import org.objectweb.asm.*;
 
+import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.BiFunction;
 
@@ -21,7 +27,10 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
     private Scope global;
     private final String className;
     final ErrorCollector errorCollector = new ErrorCollector();
-
+    private final DynamicLoader classLoader = new DynamicLoader();
+    private final Map<String,Class<?>> structMap = new HashMap<>();
+    private final Map<String,String> structVarMap = new HashMap<>();
+    private final String path;
     private final Map<String, Integer> intOpcodes = Map.of(
             "+", Opcodes.IADD,
             "-", Opcodes.ISUB,
@@ -58,6 +67,7 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
             "int" , Type.INT_TYPE,
             "bool" , Type.BOOLEAN_TYPE,
             "String", Type.getType(String.class),
+            "string", Type.getType(String.class),
             "void" , Type.VOID_TYPE
     );
     private final Map<Type , String> stringType = Map.of(
@@ -67,11 +77,12 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
              Type.VOID_TYPE , "void"
     );
 
-    public Quark(ClassWriter cw, MethodVisitor mainVisitor, MethodVisitor currentMethodVisitor , String className) {
+    public Quark(ClassWriter cw, MethodVisitor mainVisitor, MethodVisitor currentMethodVisitor , String className, String path) {
         this.cw = cw;
         this.mainVisitor = mainVisitor;
         this.currentMethodVisitor = currentMethodVisitor;
         this.className = className;
+        this.path = path;
         //scopes.put();
         scope = new Scope();
         scopes.put(mainVisitor , scope);
@@ -110,7 +121,7 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
                 errorCollector.addError( ctx , "Not recognized '" + name + "'");
                 return TypedValue.voidtype();
             }
-            VarInfo info = scope.get(name);
+            VarInfo info = scope.getVariable(name);
             int slot = info.slot;
             type = visit(ctx.expr()); //this loads the value onto the stack
             //now just store it in the alrady given slot basically
@@ -132,7 +143,7 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
                     varType
             );
 
-            scope.put(id,info);
+            scope.putVariable(id,info);
             // memory.put(id, lastSlot);
             scope.lastSlot++; //use the next slot
             // types.put(id, varType);
@@ -265,10 +276,10 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
     @Override
     public TypedValue visitMulexpr(QuarkParser.MulexprContext ctx) {
         if (ctx.getChildCount() == 1) {
-            return visit(ctx.atom());
+            return visit(ctx.fieldaccess(0));
         }
-        TypedValue type1 = visit(ctx.mulexpr());
-        TypedValue type2 = visit(ctx.atom());
+        TypedValue type1 = visit(ctx.fieldaccess(0));
+        TypedValue type2 = visit(ctx.fieldaccess(1));
         String op = ctx.getChild(1).getText();
 
         if (type1.type != type2.type && type1.type == TypedValue.Type.INT) {
@@ -293,6 +304,14 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
     }
 
     @Override
+    public TypedValue visitFieldaccess(QuarkParser.FieldaccessContext ctx) {
+        if(ctx.access().ID().isEmpty()){ //check if the access is empty , meaning its an normal literal without involement of any structs
+            return visit(ctx.atom());
+        }
+        return TypedValue.voidtype();
+    }
+
+    @Override
     public TypedValue visitAtom(QuarkParser.AtomContext ctx) {
         if (ctx.INT() != null) {
             int value = Integer.parseInt(ctx.INT().getText());
@@ -306,8 +325,9 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
             return new TypedValue(TypedValue.Type.STRING, str);
         } else if (ctx.ID() != null) {
             String id = ctx.ID().getText();
+            //check for local variable
             if (scope.containsKey(id)) {
-                VarInfo info = scope.get(id);
+                VarInfo info = scope.getVariable(id);
                 TypedValue.Type type = info.type;
                 if (type == TypedValue.Type.INT) { //int
                     currentMethodVisitor.visitVarInsn(Opcodes.ILOAD, info.slot);
@@ -317,7 +337,18 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
                     currentMethodVisitor.visitVarInsn(Opcodes.ILOAD, info.slot);
                 }
                 //it returns a null because the value is in the jvm slot and cannot be retrieved , one way to solve that problem is obv to maintain another hashmap with its values , seems unreasonable just yet
-                return new TypedValue(type, null);
+                return new TypedValue(type, null , id);
+            }
+            //check for struct
+            if(scope.containsStruct(id)){
+                //if it exits , load the struct onto the stack , for either printing or using it further somewhere
+                if(!scope.containsStruct(id)){
+                    errorCollector.addError(ctx,"Struct '" + id + "' doesnt exist");
+                    return TypedValue.voidtype();
+                }
+                var info = scope.getStructInfo(id);
+                currentMethodVisitor.visitVarInsn(Opcodes.ALOAD,info.slot); //load the instance of the object onto the stack
+                return new TypedValue(TypedValue.Type.STRUCT, null , info.name); //return the struct name as id in the type
             }
             errorCollector.addError( ctx , "Not recognized '" + ctx.ID() + "'");
             return TypedValue.unknowntype();
@@ -344,6 +375,16 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
             currentMethodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,"java/io/PrintStream","println","(Ljava/lang/Object;)V");
         }else if(type.type == TypedValue.Type.BOOL){
             currentMethodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,"java/io/PrintStream","println","(Z)V");
+        }else if(type.type == TypedValue.Type.STRUCT){
+            //invoke the tostring() on the object that is loaded after the visit
+            currentMethodVisitor.visitMethodInsn(
+                    Opcodes.INVOKEVIRTUAL,
+                    type.id, // internal name like "point"
+                    "toString",
+                    "()Ljava/lang/String;"
+            );
+
+            currentMethodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V");
         }
         return type;
     }
@@ -496,7 +537,7 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
                         scope.lastSlot,
                         TypedValue.stringType(typeStr)
                 );
-                scope.put(name , info);
+                scope.putVariable(name , info);
                 scope.lastSlot++;
             }
         }
@@ -670,6 +711,175 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         }
         //generate the function Id and get all the
 
+        return TypedValue.voidtype();
+    }
+
+    @Override
+    public TypedValue visitDefinestructstat(QuarkParser.DefinestructstatContext ctx) {
+        String structName = ctx.ID().getText();
+        var fields = ctx.structstats().structfield();
+        Map<String , String> fieldTypeMap = new LinkedHashMap<>(); //will store the id and the type
+        for(var field : fields){
+            String fieldName = field.ID().getText();
+            if(fieldTypeMap.containsKey(fieldName)){
+                errorCollector.addError(ctx ,"Duplicate field '" + fieldName + "' ");
+                continue;
+            }
+            fieldTypeMap.put(fieldName , field.TYPE().getText());
+        }
+        byte[] bytecode = generateClassBytecode(structName, fieldTypeMap);
+        try {
+            Path outputPath = Paths.get(path, structName + ".class");
+            Files.write(outputPath, bytecode);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+
+        // Dynamically define it
+        Class<?> structClass = classLoader.define(structName, bytecode);
+        structMap.put(structName, structClass);
+
+        return TypedValue.voidtype();
+    }
+
+    public byte[] generateClassBytecode(String name , Map<String , String> fields){
+        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
+        cw.visit(Opcodes.V1_7, Opcodes.ACC_PUBLIC, name , null, "java/lang/Object", null);
+
+        //add fields
+        List<Type> paramList= new ArrayList<>();
+        for(Map.Entry<String , String> entry : fields.entrySet()){
+            String signature = TypedValue.getDescriptorFromString(entry.getValue());
+            cw.visitField(Opcodes.ACC_PUBLIC , entry.getKey() , signature , null , null).visitEnd();
+            paramList.add(javaType.get(entry.getValue()));
+        }
+        Type[] parms = paramList.toArray(new Type[0]);
+        String descriptor = Type.getMethodDescriptor(
+                javaType.get("void"),
+                parms
+        );
+        //make the constructor
+        MethodVisitor mv = cw.visitMethod(
+                Opcodes.ACC_PUBLIC,
+                "<init>",
+                descriptor,
+                null,
+                null
+        );
+
+        //super()
+        mv.visitVarInsn(Opcodes.ALOAD,0);
+        mv.visitMethodInsn(Opcodes.INVOKESPECIAL,"java/lang/Object","<init>" ,"()V");
+
+        int slot = 1;
+        for(Map.Entry<String , String> entry : fields.entrySet()){
+            mv.visitVarInsn(Opcodes.ALOAD,0);
+            Type type = javaType.get(entry.getValue());
+            if (type == Type.INT_TYPE) {
+                mv.visitVarInsn(Opcodes.ILOAD, slot);
+            } else if (type.equals(Type.getType(String.class))) {
+                mv.visitVarInsn(Opcodes.ALOAD, slot);
+            } else if (type == Type.BOOLEAN_TYPE) {
+                mv.visitVarInsn(Opcodes.ILOAD, slot);
+            }else{
+                System.out.println("failing silently");
+            }
+            slot++;
+            mv.visitFieldInsn(Opcodes.PUTFIELD, name , entry.getKey(), TypedValue.getDescriptorFromString(entry.getValue()));
+        }
+        mv.visitInsn(Opcodes.RETURN);
+        mv.visitMaxs(-1, -1);
+        mv.visitEnd();
+        // done with the constructor method
+
+        //write the toString method
+        mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "toString", "()Ljava/lang/String;", null, null);
+
+        //StringBuilder sb = new StringBuilder()
+        mv.visitTypeInsn(Opcodes.NEW, "java/lang/StringBuilder");
+        mv.visitInsn(Opcodes.DUP);
+        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/StringBuilder", "<init>", "()V");
+
+        //append the struct / class name sb.append(name + "{")
+        mv.visitLdcInsn(name + "{ ");
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;");
+        List<Map.Entry<String, String>> entries = new ArrayList<>(fields.entrySet());
+        for(int i = 0; i < entries.size() ; i++){
+            Map.Entry<String,String> entry = entries.get(i);
+            String type = entry.getValue();
+            String id = entry.getKey();
+            String desc = TypedValue.getDescriptorFromString(type);
+            //add the field sb.append(" " + id + "=")
+            mv.visitLdcInsn(id + "=");
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;");
+
+            if(type.equals("string")){ //check if its a string and add a "
+                mv.visitLdcInsn("\"");
+                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;");
+            }
+            //append this.id
+            mv.visitVarInsn(Opcodes.ALOAD,0); //this
+            mv.visitFieldInsn(Opcodes.GETFIELD , name , id , desc);
+            String strBuilderDesc = "(" + desc + ")" + "Ljava/lang/StringBuilder;";
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder", "append", strBuilderDesc);
+
+            if(type.equals("string")){ //check if its a string and add a "
+                mv.visitLdcInsn("\"");
+                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;");
+            }
+
+            if(i != entries.size() - 1){
+                mv.visitLdcInsn(" , ");
+                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;");
+            }
+        }
+        //sb.append("}")
+        mv.visitLdcInsn(" }");
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;");
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder", "toString", "()Ljava/lang/String;");
+        mv.visitInsn(Opcodes.ARETURN);
+        mv.visitMaxs(-1, -1);
+        mv.visitEnd();
+
+        cw.visitEnd();
+        return cw.toByteArray();
+    }
+
+    @Override
+    public TypedValue visitDeclarestruct(QuarkParser.DeclarestructContext ctx) {
+        String structName = ctx.ID(0).getText();
+        String structVarName = ctx.ID(1).getText();
+
+        if(!structMap.containsKey(structName)){
+            errorCollector.addError(ctx , "Struct '" + structName + "' not defined");
+            return TypedValue.voidtype();
+        }
+
+        if(structVarMap.containsKey(structVarName) || scope.containsKey(structVarName)){
+            errorCollector.addError(ctx , "Identifier already defined " + structName);
+            return TypedValue.voidtype();
+        }
+
+        currentMethodVisitor.visitTypeInsn(Opcodes.NEW , structName);
+        currentMethodVisitor.visitInsn(Opcodes.DUP);
+
+        if(ctx.arglist() != null){
+            var argsCtx = ctx.arglist();
+            //get all the expressions from the arglist
+            for(var expr : argsCtx.expr()){
+                TypedValue type = visit(expr); //laods and returns the type
+            }
+        }
+        Class<?> structclass = structMap.get(structName);
+        Constructor<?> onlyctor = structclass.getDeclaredConstructors()[0];
+        String descriptor  = Type.getConstructorDescriptor(onlyctor);
+
+        currentMethodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL , structName, "<init>" , descriptor );
+        currentMethodVisitor.visitVarInsn(Opcodes.ASTORE , scope.lastSlot);
+        StructInfo info = new StructInfo(scope.lastSlot , structName); //store it in the scope for later retrieval
+        scope.putStruct(structVarName , info);
+        scope.lastSlot++;
         return TypedValue.voidtype();
     }
 }

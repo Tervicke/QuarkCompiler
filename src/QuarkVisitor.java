@@ -64,6 +64,30 @@ public interface QuarkVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitImportstat(QuarkParser.ImportstatContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link QuarkParser#definestructstat}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDefinestructstat(QuarkParser.DefinestructstatContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link QuarkParser#structstats}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitStructstats(QuarkParser.StructstatsContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link QuarkParser#structfield}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitStructfield(QuarkParser.StructfieldContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link QuarkParser#declarestruct}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDeclarestruct(QuarkParser.DeclarestructContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link QuarkParser#ifstatement}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -123,6 +147,18 @@ public interface QuarkVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitMulexpr(QuarkParser.MulexprContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link QuarkParser#fieldaccess}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFieldaccess(QuarkParser.FieldaccessContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link QuarkParser#access}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAccess(QuarkParser.AccessContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link QuarkParser#atom}.
 	 * @param ctx the parse tree

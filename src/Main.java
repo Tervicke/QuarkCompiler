@@ -6,6 +6,7 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,6 +19,13 @@ public class Main{
     private static final List<String> order = new ArrayList<>();
     public static void main(String[]args) throws IOException {
         String inputFile = args[0];
+
+        File file = new File(inputFile);
+        String path = file.getParent();
+        if (path == null) {
+            path = "."; // current directory
+        }
+
 
         generateGraph( inputFile ); // this should reorder the input files according to topology graph
 
@@ -66,7 +74,7 @@ public class Main{
             );
             mv.visitCode();
 
-            Quark visitor = new Quark(cw, mv, mv, s);
+            Quark visitor = new Quark(cw, mv, mv, s , path);
             visitor.visit(tree);
 
             //end the main method
@@ -83,7 +91,6 @@ public class Main{
 
             //finish up the MethodVisitor and ClassWriter
             byte[] bytecode = cw.toByteArray();
-            inputFile = args[0];
             System.out.println("compiled " + s + ".quark" + " and generated " + outputPath);
             Files.write(Paths.get(outputPath.toString()), bytecode);
         }
@@ -92,7 +99,7 @@ public class Main{
     private static void dfs(String currentNode ,  Set<String> visited ){
         //make the current node
         visited.add(currentNode);
-        for(String node : graph.get(currentNode)){
+        for(String node : graph.getOrDefault(currentNode,List.of())){
             if(visited.contains(node)) continue;
             dfs(node , visited);
         }
@@ -111,7 +118,7 @@ public class Main{
     public static boolean detectCycle(String node , Set<String> visited , Set<String> recStack){
         visited.add(node);
         recStack.add(node);
-        for(String neighbour : graph.get(node)){
+        for(String neighbour : graph.getOrDefault(node,List.of())){
             if(!visited.contains(neighbour)){
                 if(detectCycle(neighbour , visited , recStack)){
                     return true;

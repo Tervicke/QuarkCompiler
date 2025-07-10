@@ -12,6 +12,8 @@ stat
 | funccall
 | returnstat
 | importstat
+| definestructstat
+| declarestruct
 | LineComment
 | NEWLINE
 
@@ -23,6 +25,10 @@ funccall: (modulename=ID '.')? functionname=ID '(' arglist? ')';
 arglist: expr (',' expr)* ;
 returnstat: 'return' expr? NEWLINE ;
 importstat: 'import' ID ;
+definestructstat: 'struct' ID '{' structstats '}';
+structstats: structfield* ;
+structfield: TYPE ID ;
+declarestruct: ID ID'(' arglist? ')' ;
 
 ifstatement: 'if' '(' expr ')' block ('else' block )?;
 block: '{' stat* '}' ;
@@ -42,9 +48,12 @@ addexpr : addexpr ( '+' | '-') mulexpr
 | mulexpr
 ;
 
-mulexpr : mulexpr ( '*' | '/' | '%' ) atom
-| atom
-;
+mulexpr : fieldaccess ( '*' | '/' | '%' ) fieldaccess
+        | fieldaccess
+        ;
+
+fieldaccess : atom access;
+access: ('.' ID)* ;
 
 atom : INT
 | ID
@@ -53,7 +62,6 @@ atom : INT
 | FALSE
 | funccall
 | '(' expr ')'
-
 ;
 
 //lexer rules
@@ -65,7 +73,7 @@ TRUE  : 'true' ;
 FALSE : 'false' ;
 ID : [a-zA-Z_][a-zA-Z_0-9]* ;
 INT : [0-9]+ ;
-NEWLINE : '\r'?'\n' ;
+NEWLINE : '\r'?'\n' -> skip;
 WS : [ \t]+ -> skip ;
 STRING : '"' (~["\\] | '\\' .)* '"' ;
 LineComment

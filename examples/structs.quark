@@ -4,5 +4,5 @@ struct person{
     bool ismale
 }
 
-person p("tervicke",18,true)
+person p("tervicke",18 , true)
 print(p)
