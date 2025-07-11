@@ -23,3 +23,92 @@ run the binary
 java -cp examples structs 
 ```
 ## see more [examples](examples/) 
+
+## features 
+---
+
+## 🔹 1. Literals & Basic Types
+
+- [x] Integer literals (`INT`)
+- [x] Double literals (`DOUBLE`)
+- [x] Boolean literals (`true`, `false`)
+- [x] String literals (`"..."`)
+- [x] Parenthesized expressions `(expr)`
+
+---
+
+## 🔹 2. Types & Variable Declarations
+
+- [x] Basic types: `int`, `string`, `bool`, `double`
+- [x] Variable declaration with type (e.g., `int x = 5`)
+- [x] Variable declaration without type (type inference)
+- [x] Variable reassignment (`x = expr`)
+- [x] Typed function parameters
+- [x] Optional return type for functions (`-> TYPE`)
+- [ ] Const or immutable variables (e.g., `const x = 10`)
+
+---
+
+## 🔹 3. Expressions
+
+- [x] Arithmetic operators: `+`, `-`, `*`, `/`, `%`
+- [x] Comparison operators: `<`, `>`, `<=`, `>=`
+- [x] Equality operators: `==`, `!=`
+- [x] Field access: `obj.field`
+- [ ] Logical operators: `&&`, `||`, `!`
+- [ ] Unary minus / plus (`-a`, `+a`)
+- [ ] Ternary expressions (`cond ? a : b`)
+
+---
+
+## 🔹 4. Control Flow
+
+- [x] If statements (`if (cond) { ... }`)
+- [x] If-else blocks
+- [x] While loops (`while (cond) { ... }`)
+- [x] Nested blocks `{ ... }`
+- [ ] For loops
+- [ ] Break & continue statements
+- [ ] Switch / match expression
+
+---
+
+## 🔹 5. Functions
+
+- [x] Function definition (`fn name(args) { ... }`)
+- [x] Function call (`foo(1, 2)`)
+- [x] Return statement (`return expr`)
+- [x] Optional return type (`-> int`)
+- [x] Function call from module (`mod.func()`)
+- [x] Recursive functions
+- [ ] Lambdas or anonymous functions
+
+---
+
+## 🔹 6. Structs
+
+- [x] Struct definition (`struct Name { ... }`)
+- [x] Struct fields with types
+- [x] Struct instantiation (`Point(1, 2)`)
+- [x] Field access (`p.x`)
+- [ ] Nested structs
+- [ ] Struct methods
+
+---
+
+## 🔹 7. I/O and Built-ins
+
+- [x] Print statement (`print(...)`)
+- [ ] Input from user
+- [ ] String formatting
+- [ ] Basic standard library (e.g., `len(string)`, math functions)
+
+---
+
+## 🔹 8. Modules and Imports
+
+- [x] Import statement (`import module`)
+- [ ] Importing specific functions or structs
+- [ ] Export keywords for public APIs
+
+---
