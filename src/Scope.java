@@ -32,4 +32,11 @@ public class Scope {
     public StructInfo getStructInfo(String name){
         return structs.get(name);
     }
+    public void putConstant(String name , VarInfo info){
+        variables.put(name , info);
+    }
+    public boolean isConstant(String name){
+        VarInfo info = variables.get(name);
+        return info.isConstant;
+    }
 }

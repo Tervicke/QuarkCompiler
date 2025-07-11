@@ -1,2 +1,2 @@
-double pi = 3.14
-print(pi)
+const PI = 3.14
+print(PI)

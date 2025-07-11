@@ -123,27 +123,41 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
                 errorCollector.addError( ctx , "Not recognized '" + name + "'");
                 return TypedValue.voidtype();
             }
+            if(scope.isConstant(name)){
+                errorCollector.addError(ctx , "cannot update '"+ name +"' declared as a constant ");
+                return TypedValue.voidtype();
+            }
             VarInfo info = scope.getVariable(name);
             int slot = info.slot;
             type = visit(ctx.expr()); //this loads the value onto the stack
             //now just store it in the alrady given slot basically
             updateStoreIns(type.type , slot);
-        }else{ //declaration
+        }
+        else{ //declaration
             String id = ctx.ID().getText();
             String definedType = ctx.TYPE().getText();
-            type = visit(ctx.expr());
-            pushStoreInsAndUpdateSlot(type.type , scope.lastSlot);
-            //convert this to java bytecode
-            if (!TypedValue.typeString(type.type).equals(definedType)) {
-                errorCollector.addError(ctx , "cannot assign " + TypedValue.typeString(type.type) + " to an " + definedType);
-                return TypedValue.unknowntype();
+            if(definedType.equals("const")){ //constant declartion
+                type = visit(ctx.expr());
+                VarInfo constInfo = VarInfo.constant(type.value , type.type);
+
+                //check if the id already exists in scope
+                if(scope.containsKey(id)){
+                    errorCollector.addError(ctx,"variable '"+ id +"' already declared");
+                    return TypedValue.voidtype();
+                }
+                scope.putConstant(id , constInfo);
+            }else{ //other types , verify the types and push add the value to scope
+                type = visit(ctx.expr());
+                pushStoreInsAndUpdateSlot(type.type , scope.lastSlot);
+                //convert this to java bytecode
+                if (!TypedValue.typeString(type.type).equals(definedType)) {
+                    errorCollector.addError(ctx , "cannot assign " + TypedValue.typeString(type.type) + " to an " + definedType);
+                    return TypedValue.unknowntype();
+                }
+                TypedValue.Type varType = TypedValue.stringType(ctx.TYPE().getText());
+                VarInfo variableInfo = VarInfo.variable(scope.lastSlot , varType);
+                scope.putVariable(id,variableInfo);
             }
-            TypedValue.Type varType = TypedValue.stringType(ctx.TYPE().getText());
-            VarInfo info = new VarInfo(
-                    scope.lastSlot,
-                    varType
-            );
-            scope.putVariable(id,info);
         }
         return type;
     }
@@ -326,6 +340,11 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
             if (scope.containsKey(id)) {
                 VarInfo info = scope.getVariable(id);
                 TypedValue.Type type = info.type;
+                //check if the value is constant if yes load it direcly instead of loading it from the slot
+                if(info.isConstant){
+                    currentMethodVisitor.visitLdcInsn(info.constValue);
+                    return new TypedValue( type , info.constValue);
+                }
                 if (type == TypedValue.Type.INT) { //int
                     currentMethodVisitor.visitVarInsn(Opcodes.ILOAD, info.slot);
                 } else if (type == TypedValue.Type.STRING) { //string
@@ -539,11 +558,8 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
             for(var param : paramListCtx.param()){
                 String name = param.ID().getText();
                 String typeStr = param.TYPE().getText();
-                VarInfo info = new VarInfo(
-                        scope.lastSlot,
-                        TypedValue.stringType(typeStr)
-                );
-                scope.putVariable(name , info);
+                VarInfo variableInfo = VarInfo.variable(scope.lastSlot , TypedValue.stringType(typeStr));
+                scope.putVariable(name , variableInfo);
                 scope.lastSlot++;
             }
         }

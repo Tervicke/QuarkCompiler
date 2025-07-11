@@ -81,8 +81,8 @@ public class Main{
             cw.visitEnd();
 
             if (visitor.errorCollector.hasErrors()) {
-                System.out.println("Error occured when compiling " + inputPath.toString());
                 visitor.errorCollector.reportAll();
+                System.out.println("Error occured when compiling " + inputPath.toString());
                 continue;
             }
 

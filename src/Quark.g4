@@ -70,7 +70,8 @@ TYPE
     : 'int'
     | 'string'
     | 'bool'
-    | 'double' ;
+    | 'double'
+    | 'const' ;
 TRUE  : 'true' ;
 FALSE : 'false' ;
 ID : [a-zA-Z_][a-zA-Z_0-9]* ;
