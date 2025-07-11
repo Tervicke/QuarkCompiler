@@ -57,6 +57,7 @@ access: ('.' ID)* ;
 
 atom : INT
 | ID
+| DOUBLE
 | STRING
 | TRUE
 | FALSE
@@ -68,11 +69,19 @@ atom : INT
 TYPE
     : 'int'
     | 'string'
-    | 'bool' ;
+    | 'bool'
+    | 'double' ;
 TRUE  : 'true' ;
 FALSE : 'false' ;
 ID : [a-zA-Z_][a-zA-Z_0-9]* ;
-INT : [0-9]+ ;
+DOUBLE
+    : DIGIT+ '.' DIGIT* ([eE] [+-]? DIGIT+)?     // 123.456, 10., 1.2e3
+    | '.' DIGIT+ ([eE] [+-]? DIGIT+)?            // .456, .1e-5
+    ;
+fragment DIGIT : [0-9];
+
+INT : DIGIT+ ;
+
 NEWLINE : '\r'?'\n' -> skip;
 WS : [ \t]+ -> skip ;
 STRING : '"' (~["\\] | '\\' .)* '"' ;

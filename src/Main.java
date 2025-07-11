@@ -29,8 +29,6 @@ public class Main{
 
         generateGraph( inputFile ); // this should reorder the input files according to topology graph
 
-        System.out.println(graph);
-
         Set<String> visited = new HashSet<>();
         Set<String> recStack = new HashSet<>();
 
@@ -43,7 +41,6 @@ public class Main{
 
         //topologically sort graph
         topSortGraph();
-        System.out.println(order);
 
         for (String s : order) {
             //get the path

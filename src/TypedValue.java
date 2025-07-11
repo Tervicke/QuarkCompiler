@@ -2,7 +2,7 @@ import org.objectweb.asm.Type;
 
 public class TypedValue {
     public enum Type{
-        INT , STRING , BOOL , UNKNOWN , VOID , STRUCT
+        INT , STRING , BOOL , UNKNOWN , VOID , STRUCT , DOUBLE
     };
 
     public final Type type;
@@ -29,6 +29,8 @@ public class TypedValue {
                 return "bool";
             case VOID:
                 return "void";
+            case DOUBLE:
+                return "double";
             default:
                 return "unknown";
         }
@@ -43,6 +45,8 @@ public class TypedValue {
                 return Type.BOOL;
             case "void":
                 return Type.VOID;
+            case "double":
+                return Type.DOUBLE;
             default:
                 return Type.UNKNOWN;
 

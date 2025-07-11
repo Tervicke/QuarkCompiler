@@ -1,8 +1,2 @@
-struct person{
-    string name
-    int age
-    bool ismale
-}
-
-person p("tervicke",18,true)
-print(p)
+double pi = 3.14
+print(pi)

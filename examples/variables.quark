@@ -6,3 +6,5 @@ bool even1 = 10 % 2 == 0
 print(even1)
 bool even2 = 9 % 2 == 0
 print(even2)
+double pi = 3.14
+print(pi)

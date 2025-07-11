@@ -87,28 +87,30 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         scope = new Scope();
         scopes.put(mainVisitor , scope);
     }
-    /*
-    @Override
-    public TypedValue visitStat(QuarkParser.StatContext ctx) {
-        if (ctx.assigstat() != null) {
-            return visit(ctx.assigstat());
-        } else if (ctx.printstat() != null) {
-            return visit(ctx.printstat());
-        } else if (ctx.ifstatement() != null) {
-            return visit(ctx.ifstatement());
-        }else if(ctx.whilestat() != null){
-            return visit(ctx.whilestat());
-        }else if()
-        return new TypedValue(TypedValue.Type.UNKNOWN, null);
+    public void pushStoreInsAndUpdateSlot(TypedValue.Type type , int slot){
+        if (type == TypedValue.Type.INT) {
+            currentMethodVisitor.visitVarInsn(Opcodes.ISTORE, slot);
+            slot++;
+        } else if (type == TypedValue.Type.STRING) {
+            currentMethodVisitor.visitVarInsn(Opcodes.ASTORE, slot);
+            slot++;
+        } else if (type == TypedValue.Type.BOOL) { //the value will already be loaded for bull
+            currentMethodVisitor.visitVarInsn(Opcodes.ISTORE, slot);
+            slot++;
+        }else if (type == TypedValue.Type.DOUBLE){
+            currentMethodVisitor.visitVarInsn(Opcodes.DSTORE, slot);
+            slot+=2; //two for the slot
+        }
     }
-    */
-    public void pushStoreIns(TypedValue.Type type , int slot){
+    public void updateStoreIns(TypedValue.Type type , int slot){
         if (type == TypedValue.Type.INT) {
             currentMethodVisitor.visitVarInsn(Opcodes.ISTORE, slot);
         } else if (type == TypedValue.Type.STRING) {
             currentMethodVisitor.visitVarInsn(Opcodes.ASTORE, slot);
         } else if (type == TypedValue.Type.BOOL) { //the value will already be loaded for bull
             currentMethodVisitor.visitVarInsn(Opcodes.ISTORE, slot);
+        }else if (type == TypedValue.Type.DOUBLE){
+            currentMethodVisitor.visitVarInsn(Opcodes.DSTORE, slot);
         }
     }
     @Override
@@ -125,28 +127,23 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
             int slot = info.slot;
             type = visit(ctx.expr()); //this loads the value onto the stack
             //now just store it in the alrady given slot basically
-            pushStoreIns(type.type , slot);
+            updateStoreIns(type.type , slot);
         }else{ //declaration
             String id = ctx.ID().getText();
             String definedType = ctx.TYPE().getText();
             type = visit(ctx.expr());
-            pushStoreIns(type.type , scope.lastSlot);
+            pushStoreInsAndUpdateSlot(type.type , scope.lastSlot);
             //convert this to java bytecode
             if (!TypedValue.typeString(type.type).equals(definedType)) {
                 errorCollector.addError(ctx , "cannot assign " + TypedValue.typeString(type.type) + " to an " + definedType);
                 return TypedValue.unknowntype();
             }
-
             TypedValue.Type varType = TypedValue.stringType(ctx.TYPE().getText());
             VarInfo info = new VarInfo(
                     scope.lastSlot,
                     varType
             );
-
             scope.putVariable(id,info);
-            // memory.put(id, lastSlot);
-            scope.lastSlot++; //use the next slot
-            // types.put(id, varType);
         }
         return type;
     }
@@ -335,6 +332,8 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
                     currentMethodVisitor.visitVarInsn(Opcodes.ALOAD, info.slot);
                 } else if (type == TypedValue.Type.BOOL) { //its a bool but it should work just like an int under the hood
                     currentMethodVisitor.visitVarInsn(Opcodes.ILOAD, info.slot);
+                }else if(type == TypedValue.Type.DOUBLE){
+                    currentMethodVisitor.visitVarInsn(Opcodes.DLOAD, info.slot);
                 }
                 //it returns a null because the value is in the jvm slot and cannot be retrieved , one way to solve that problem is obv to maintain another hashmap with its values , seems unreasonable just yet
                 return new TypedValue(type, null , id);
@@ -360,6 +359,11 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
             return new TypedValue(TypedValue.Type.BOOL,false);
         }else if(ctx.funccall() != null){
             return visitFunccall(ctx.funccall());
+        }else if(ctx.DOUBLE() != null){
+            String text = ctx.DOUBLE().getText();
+            double value = Double.parseDouble(text);
+            currentMethodVisitor.visitLdcInsn(value);
+            return new TypedValue(TypedValue.Type.DOUBLE , value);
         }
         return visit(ctx.expr());
     }
@@ -385,6 +389,8 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
             );
 
             currentMethodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V");
+        }else if(type.type == TypedValue.Type.DOUBLE){
+            currentMethodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "println", "(D)V");
         }
         return type;
     }
