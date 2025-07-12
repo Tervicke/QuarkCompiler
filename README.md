@@ -45,7 +45,7 @@ java -cp examples structs
 - [x] Variable reassignment (`x = expr`)
 - [x] Typed function parameters
 - [x] Optional return type for functions (`-> TYPE`)
-- [ ] Const or immutable variables (e.g., `const x = 10`)
+- [x] Const or immutable variables (e.g., `const x = 10`)
 
 ---
 
