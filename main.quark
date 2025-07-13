@@ -1,7 +1,2 @@
-import io
-import math
-
-print(math.abs(-1))
-print(math.sqrt(45))
-print(math.isPrime(45))
-print(math.gcd(24 , 18))
+int x = -1
+print(x)

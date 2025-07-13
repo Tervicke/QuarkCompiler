@@ -330,10 +330,12 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
             var type = visit(ctx.unaryExpr());
             if(ctx.neg != null){
                 if(type.type == TypedValue.Type.INT){
-                    return new TypedValue(type.type , (int) type.value * -1);
+                    currentMethodVisitor.visitInsn(Opcodes.INEG);
+                    return type;
                 }
                 if(type.type == TypedValue.Type.DOUBLE){
-                    return new TypedValue(type.type , (double) type.value * -1);
+                    currentMethodVisitor.visitInsn(Opcodes.DNEG);
+                    return type;
                 }
                 errorCollector.addError(ctx,"operation not defined");
                 return TypedValue.voidtype();
