@@ -20,7 +20,8 @@ make run input=examples/structs.quark
 ```
 run the binary
 ```
-java -cp examples structs 
+cd examples
+java structs 
 ```
 ## see more [examples](examples/) 
 
