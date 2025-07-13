@@ -9,6 +9,13 @@ Open the project in IntelliJ and add all the JARs from the [jars](jars/) folder 
 <br>Remember IntelliJ runs the code from the root path so make sure the file path is correct . It will generate a  `filename.class` file in the root folder itself , run it with the JVM. `($ java filename)` 
 <br> See the [test.quark](test.quark) file for examples
 ### <br> using makefile
+add the std library as class path in your .bashrc or .zashrc 
+
+For eg
+```
+export CLASSPATH=".:/home/tervicke/IdeaProjects/Quark/std:$CLASSPATH"
+```
+
 compile and create the build directory 
 ```
 make all
