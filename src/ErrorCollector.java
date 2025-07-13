@@ -22,4 +22,10 @@ public class ErrorCollector {
     public boolean hasErrors(){
         return !errors.isEmpty();
     }
+    public static void showError(ParserRuleContext ctx , String error){
+        int line  = ctx.getStart().getLine();
+        int col = ctx.getStart().getCharPositionInLine() + 1;
+        String errorLog = "[ERROR] Line " + line + ":" + col + " " + error;
+        System.out.println("\u001B[31m" + errorLog + "\u001B[0m");
+    }
 }

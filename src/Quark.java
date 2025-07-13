@@ -1,9 +1,7 @@
 import org.objectweb.asm.*;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -73,8 +71,14 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
     private final Map<Type , String> stringType = Map.of(
             Type.INT_TYPE, "int" ,
              Type.BOOLEAN_TYPE, "bool" ,
-             Type.getType(String.class), "String",
-             Type.VOID_TYPE , "void"
+             Type.getType(String.class), "string",
+             Type.VOID_TYPE , "void",
+            Type.DOUBLE_TYPE, "double"
+    );
+
+    private static final Set<String> STANDARDLIBARY = Set.of(
+            "io",
+            "math"
     );
 
     public Quark(ClassWriter cw, MethodVisitor mainVisitor, MethodVisitor currentMethodVisitor , String className, String path) {
@@ -602,7 +606,7 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         String moduleName = ctx.modulename.getText();
         String functionName = ctx.functionname.getText();
         if(!imports.contains(moduleName)){
-            errorCollector.addError(ctx , "Did not find Module '" + moduleName + "'");
+            errorCollector.addError(ctx , "could not find Module '" + moduleName + "'");
             return TypedValue.voidtype();
         }
         //u have to load the value onto the stack to call the function later on , and also extract it for generate the descriptor
@@ -729,10 +733,10 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
             var result = ModuleInfoExtractor.extractInfoFromClass(moduleName);
             functionReturnTypes.putAll(result);
         }catch (Exception e){
-            System.out.println(e);
+            System.err.println("Failed to load class: " + moduleName);
+            e.printStackTrace();  // 👈 THIS will print the exact root cause!
+            throw new RuntimeException(e);
         }
-        //generate the function Id and get all the
-
         return TypedValue.voidtype();
     }
 

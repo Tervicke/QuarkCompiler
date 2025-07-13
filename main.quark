@@ -1,2 +1,11 @@
-const PI = 3.14
-print(PI)
+import io
+
+print("Enter any number")
+int num = io.readInt()
+
+if(num % 2 == 0){
+    print("even number")
+}else{
+    print("odd number")
+}
+

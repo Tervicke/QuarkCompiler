@@ -1,3 +1,0 @@
-fn test2func() {
-    print("hello from test2")
-}

@@ -139,12 +139,8 @@ public class Main{
             if (visited.contains(module)) continue;
             visited.add(module);
 
-            Path filePath = Path.of(module + ".quark");
-            if(!Files.exists(filePath)){
-                System.out.println("Module not found" + module);
-                continue;
-            }
 
+            Path filePath = Path.of(module + ".quark");
             CharStream input = CharStreams.fromPath(filePath);
             QuarkLexer lexer = new QuarkLexer(input);
             CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -174,7 +170,16 @@ public class Main{
         @Override
         public Void visitImportstat(QuarkParser.ImportstatContext ctx) {
             String moduleName = ctx.ID().getText();
-            imports.add(moduleName);
+
+            Path filePath = Path.of(moduleName + ".quark");
+            Path classPath = Path.of(moduleName + ".class");
+            //check if either the class path (io.class) or (io.quark) file exists if none of them exists throw error
+            if(!Files.exists(filePath) && !Files.exists(classPath)){
+                ErrorCollector.showError(ctx,"Module '"+ moduleName + "' not found");
+                System.exit(1);
+            }else if(Files.exists(filePath)){ //only add the filepath i.e .quark files to the imports list to compile them later on
+                imports.add(moduleName);
+            }
             return null;
         }
     }
