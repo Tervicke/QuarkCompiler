@@ -52,8 +52,14 @@ mulexpr : fieldaccess ( '*' | '/' | '%' ) fieldaccess
         | fieldaccess
         ;
 
-fieldaccess : atom access;
+fieldaccess : unaryExpr access;
 access: ('.' ID)* ;
+
+unaryExpr
+    : neg='-' unaryExpr
+    | pos='+' unaryExpr
+    | atom
+    ;
 
 atom : INT
 | ID

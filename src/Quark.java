@@ -319,9 +319,29 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
     @Override
     public TypedValue visitFieldaccess(QuarkParser.FieldaccessContext ctx) {
         if(ctx.access().ID().isEmpty()){ //check if the access is empty , meaning its an normal literal without involement of any structs
-            return visit(ctx.atom());
+            return visit(ctx.unaryExpr());
         }
         return TypedValue.voidtype();
+    }
+
+    @Override
+    public TypedValue visitUnaryExpr(QuarkParser.UnaryExprContext ctx) {
+        if(ctx.neg != null || ctx.pos != null){
+            var type = visit(ctx.unaryExpr());
+            if(ctx.neg != null){
+                if(type.type == TypedValue.Type.INT){
+                    return new TypedValue(type.type , (int) type.value * -1);
+                }
+                if(type.type == TypedValue.Type.DOUBLE){
+                    return new TypedValue(type.type , (double) type.value * -1);
+                }
+                errorCollector.addError(ctx,"operation not defined");
+                return TypedValue.voidtype();
+            }
+            return type;
+        }else{
+            return visit(ctx.atom());
+        }
     }
 
     @Override

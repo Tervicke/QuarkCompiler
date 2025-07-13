@@ -160,6 +160,12 @@ public interface QuarkVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitAccess(QuarkParser.AccessContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link QuarkParser#unaryExpr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitUnaryExpr(QuarkParser.UnaryExprContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link QuarkParser#atom}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

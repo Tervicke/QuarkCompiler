@@ -1,11 +1,7 @@
 import io
+import math
 
-print("Enter any number")
-int num = io.readInt()
-
-if(num % 2 == 0){
-    print("even number")
-}else{
-    print("odd number")
-}
-
+print(math.abs(-1))
+print(math.sqrt(45))
+print(math.isPrime(45))
+print(math.gcd(24 , 18))

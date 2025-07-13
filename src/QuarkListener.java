@@ -257,6 +257,16 @@ public interface QuarkListener extends ParseTreeListener {
 	 */
 	void exitAccess(QuarkParser.AccessContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link QuarkParser#unaryExpr}.
+	 * @param ctx the parse tree
+	 */
+	void enterUnaryExpr(QuarkParser.UnaryExprContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link QuarkParser#unaryExpr}.
+	 * @param ctx the parse tree
+	 */
+	void exitUnaryExpr(QuarkParser.UnaryExprContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link QuarkParser#atom}.
 	 * @param ctx the parse tree
 	 */
