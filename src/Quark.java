@@ -9,6 +9,7 @@ import java.util.*;
 import java.util.function.BiFunction;
 
 public class Quark extends QuarkBaseVisitor<TypedValue> {
+    private static Set<String> STANDARDLIBRARY = Set.of();
     //function Id is a special and unique type of Id that is generated in the following way
     //moduleName:functionName:descriptorWithoutReturnType
     //the map stores the functionReturnTypes stores the functionId -> return Type where Type is a ASM type
@@ -76,17 +77,14 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
             Type.DOUBLE_TYPE, "double"
     );
 
-    private static final Set<String> STANDARDLIBARY = Set.of(
-            "io",
-            "math"
-    );
 
-    public Quark(ClassWriter cw, MethodVisitor mainVisitor, MethodVisitor currentMethodVisitor , String className, String path) {
+    public Quark(ClassWriter cw, MethodVisitor mainVisitor, MethodVisitor currentMethodVisitor , String className, String path , Set<String> STANDARDLIBRARY) {
         this.cw = cw;
         this.mainVisitor = mainVisitor;
         this.currentMethodVisitor = currentMethodVisitor;
         this.className = className;
         this.path = path;
+        this.STANDARDLIBRARY = STANDARDLIBRARY;
         //scopes.put();
         scope = new Scope();
         scopes.put(mainVisitor , scope);
@@ -730,7 +728,12 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
 
         //get the functionId map from the ModuleInfoExtractor
         try {
-            var result = ModuleInfoExtractor.extractInfoFromClass(moduleName);
+            Map<String, Type> result;
+            if(STANDARDLIBRARY.contains(moduleName)){
+                result = ModuleInfoExtractor.extractInfoFromClass(moduleName , true);
+            }else{
+                result = ModuleInfoExtractor.extractInfoFromClass(moduleName , false);
+            }
             functionReturnTypes.putAll(result);
         }catch (Exception e){
             System.err.println("Failed to load class: " + moduleName);

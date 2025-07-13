@@ -11,7 +11,7 @@ clean:
 	rm -rf $(BUILD_DIR)
 
 run:
-	@java -cp "build:jars/*" Main $(input) -o $(output) 
+	@java -cp "build:jars/*" Main $(input) 
 
 antlr:
 	@java -cp "/usr/local/lib/antlr-4.11.1-complete.jar" org.antlr.v4.Tool src/Quark.g4 -visitor 

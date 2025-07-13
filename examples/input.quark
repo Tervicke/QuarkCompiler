@@ -1,0 +1,21 @@
+import io
+
+//this will read an int from the input stream
+print("enter any number")
+int x = io.readInt()
+print(x)
+
+
+print("enter any double")
+double y = io.readDouble()
+print(y)
+
+//this will only read the first string and terminate at space
+print("enter any string")
+string z = io.readString()
+print(z)
+
+//this will read the entire string spaces included
+print("enter any line")
+z = io.readLine()
+print(z)

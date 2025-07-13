@@ -17,6 +17,12 @@ public class Main{
     private static final Map<String , List<String>> graph = new HashMap<>();
     private static final Set<String> modules  = new HashSet<>();
     private static final List<String> order = new ArrayList<>();
+
+    private static final Set<String> STANDARDLIBARY = Set.of(
+            "io",
+            "math"
+    );
+
     public static void main(String[]args) throws IOException {
         String inputFile = args[0];
 
@@ -71,7 +77,7 @@ public class Main{
             );
             mv.visitCode();
 
-            Quark visitor = new Quark(cw, mv, mv, s , path);
+            Quark visitor = new Quark(cw, mv, mv, s , path , STANDARDLIBARY);
             visitor.visit(tree);
 
             //end the main method
@@ -172,9 +178,8 @@ public class Main{
             String moduleName = ctx.ID().getText();
 
             Path filePath = Path.of(moduleName + ".quark");
-            Path classPath = Path.of(moduleName + ".class");
             //check if either the class path (io.class) or (io.quark) file exists if none of them exists throw error
-            if(!Files.exists(filePath) && !Files.exists(classPath)){
+            if(!Files.exists(filePath) && !STANDARDLIBARY.contains(moduleName)){
                 ErrorCollector.showError(ctx,"Module '"+ moduleName + "' not found");
                 System.exit(1);
             }else if(Files.exists(filePath)){ //only add the filepath i.e .quark files to the imports list to compile them later on

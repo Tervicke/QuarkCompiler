@@ -7,17 +7,23 @@ import java.util.Map;
 import java.util.OptionalInt;
 
 public class ModuleInfoExtractor {
-    public static Map<String , Type> extractInfoFromClass(String className) throws IOException {
+    public static Map<String , Type> extractInfoFromClass(String className , boolean isStandardLibrary) throws IOException {
+        ClassReader cr;
         Map<String , Type> result = new HashMap<>();
-        File file = new File(className + ".class");
-        if (!file.exists()) {
-            throw new FileNotFoundException("Missing file: " + file.getAbsolutePath());
+        if(isStandardLibrary){
+             cr = new ClassReader(className);
+        }else{
+            File file = new File(className + ".class");
+            if (!file.exists()) {
+                throw new FileNotFoundException("Missing file: " + file.getAbsolutePath());
+            }
+            byte[] bytes = Files.readAllBytes(file.toPath());
+            cr = new ClassReader(bytes);
         }
-        byte[] bytes = Files.readAllBytes(file.toPath());
-        ClassReader cr = new ClassReader(bytes);
         ClassVisitor visitor = new ClassVisitor(Opcodes.ASM4) {
             @Override
             public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
+                System.out.println("Found method: " + name + " " + desc);
                 if ((access & Opcodes.ACC_STATIC) != 0 &&
                         (access & Opcodes.ACC_PUBLIC) != 0 &&
                         !name.equals("<clinit>") &&
@@ -35,6 +41,7 @@ public class ModuleInfoExtractor {
             }
         };
         cr.accept(visitor , 0);
+        System.out.println(result);
         return result;
     }
 
