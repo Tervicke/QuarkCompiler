@@ -30,6 +30,9 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
     private final Map<String,Class<?>> structMap = new HashMap<>();
     private final Map<String,String> structVarMap = new HashMap<>();
     private final String path;
+    private final Deque<Label> startOfLoops = new ArrayDeque<>(); //store all the start of the loops
+    private final Deque<Label> endOfLoops = new ArrayDeque<>(); //store all the ends of the loop
+
     private final Map<String, Integer> intOpcodes = Map.of(
             "+", Opcodes.IADD,
             "-", Opcodes.ISUB,
@@ -150,14 +153,14 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
                 scope.putConstant(id , constInfo);
             }else{ //other types , verify the types and push add the value to scope
                 type = visit(ctx.expr());
-                pushStoreInsAndUpdateSlot(type.type , scope.lastSlot);
+                pushStoreInsAndUpdateSlot(type.type , scope.getLastSlot());
                 //convert this to java bytecode
                 if (!TypedValue.typeString(type.type).equals(definedType)) {
                     errorCollector.addError(ctx , "cannot assign " + TypedValue.typeString(type.type) + " to an " + definedType);
                     return TypedValue.unknowntype();
                 }
                 TypedValue.Type varType = TypedValue.stringType(ctx.TYPE().getText());
-                VarInfo variableInfo = VarInfo.variable(scope.lastSlot , varType);
+                VarInfo variableInfo = VarInfo.variable(scope.getLastSlot() , varType);
                 scope.putVariable(id,variableInfo);
             }
         }
@@ -493,6 +496,10 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         Label endLabel = new Label();
         Label startLabel = new Label();
 
+        //push the start and the endlabels on the stack
+        endOfLoops.push(endLabel);
+        startOfLoops.push(startLabel);
+
         //set the start label
         currentMethodVisitor.visitLabel(startLabel);
 
@@ -506,7 +513,32 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
 
         //add the infinite breaker endlabel
         currentMethodVisitor.visitLabel(endLabel);
+
+        //pop them to indicate the end of the loop , if continue is triggered when the stack is empty it will return an error
+        endOfLoops.pop();
+        startOfLoops.pop();
+
         return type;
+    }
+
+    @Override
+    public TypedValue visitContinuestatement(QuarkParser.ContinuestatementContext ctx) {
+        if(startOfLoops.size() == 0){ //not in a loop
+            errorCollector.addError(ctx,"Cannot continue outside a loop");
+            return TypedValue.voidtype();
+        }
+        currentMethodVisitor.visitJumpInsn(Opcodes.GOTO,startOfLoops.peek());
+        return TypedValue.voidtype();
+    }
+
+    @Override
+    public TypedValue visitBreakstatement(QuarkParser.BreakstatementContext ctx) {
+        if(endOfLoops.size() == 0){
+            errorCollector.addError(ctx,"Cannot continue outside a loop");
+            return TypedValue.voidtype();
+        }
+        currentMethodVisitor.visitJumpInsn(Opcodes.GOTO,endOfLoops.peek());
+        return TypedValue.voidtype();
     }
 
     public void switchScope(MethodVisitor mv){ //this changes the scope according to a given method visitor
@@ -582,9 +614,8 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
             for(var param : paramListCtx.param()){
                 String name = param.ID().getText();
                 String typeStr = param.TYPE().getText();
-                VarInfo variableInfo = VarInfo.variable(scope.lastSlot , TypedValue.stringType(typeStr));
+                VarInfo variableInfo = VarInfo.variable(scope.getLastSlot() , TypedValue.stringType(typeStr));
                 scope.putVariable(name , variableInfo);
-                scope.lastSlot++;
             }
         }
 
@@ -927,10 +958,9 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         String descriptor  = Type.getConstructorDescriptor(onlyctor);
 
         currentMethodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL , structName, "<init>" , descriptor );
-        currentMethodVisitor.visitVarInsn(Opcodes.ASTORE , scope.lastSlot);
-        StructInfo info = new StructInfo(scope.lastSlot , structName); //store it in the scope for later retrieval
+        currentMethodVisitor.visitVarInsn(Opcodes.ASTORE , scope.getLastSlot());
+        StructInfo info = new StructInfo(scope.getLastSlot() , structName); //store it in the scope for later retrieval
         scope.putStruct(structVarName , info);
-        scope.lastSlot++;
         return TypedValue.voidtype();
     }
 }

@@ -14,6 +14,8 @@ stat
 | importstat
 | definestructstat
 | declarestruct
+| continuestatement
+| breakstatement
 | LineComment
 | NEWLINE
 
@@ -32,6 +34,9 @@ declarestruct: ID ID'(' arglist? ')' ;
 
 ifstatement: 'if' '(' expr ')' block ('else' block )?;
 block: '{' stat* '}' ;
+
+continuestatement: 'continue' ;
+breakstatement: 'break' ;
 
 whilestat: 'while' '(' expr ')' block;
 

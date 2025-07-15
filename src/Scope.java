@@ -3,7 +3,7 @@ import java.util.Map;
 public class Scope {
     Map<String,VarInfo> variables = new HashMap<String, VarInfo>();
     Map<String , StructInfo> structs = new HashMap<>(); //structname -> last , type of struct
-    int lastSlot = 0;
+    private int lastSlot = 0;
 
     void declare(String name , VarInfo info){
         if( variables.containsKey(name) ){
@@ -20,9 +20,11 @@ public class Scope {
     }
     public void putVariable(String name , VarInfo info){
         variables.put(name , info);
+        updateSlot(info);
     }
     public void putStruct(String name , StructInfo info){
         structs.put(name , info);
+        lastSlot += 1; // + 1 for structs since they are refrence to class
     }
 
     public boolean containsStruct(String strutName) {
@@ -34,9 +36,20 @@ public class Scope {
     }
     public void putConstant(String name , VarInfo info){
         variables.put(name , info);
+        updateSlot(info);
     }
     public boolean isConstant(String name){
         VarInfo info = variables.get(name);
         return info.isConstant;
+    }
+    private void updateSlot(VarInfo info){
+        if(info.type == TypedValue.Type.DOUBLE){ //if the value if double increase the slot by 2
+            lastSlot+=2;
+        }else{
+            lastSlot+=1;
+        }
+    }
+    public int getLastSlot(){
+        return lastSlot;
     }
 }

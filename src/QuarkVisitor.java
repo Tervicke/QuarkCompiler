@@ -100,6 +100,18 @@ public interface QuarkVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitBlock(QuarkParser.BlockContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link QuarkParser#continuestatement}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitContinuestatement(QuarkParser.ContinuestatementContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link QuarkParser#breakstatement}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitBreakstatement(QuarkParser.BreakstatementContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link QuarkParser#whilestat}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

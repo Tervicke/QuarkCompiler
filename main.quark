@@ -1,2 +1,18 @@
-int x = -1
-print(x)
+int i = 0
+while (i < 3) {
+    int j = 0
+    while (j < 4) {
+        j = j + 1
+
+        if (j == 2) {
+            continue
+        }
+
+        if (j == 4) {
+            break
+        }
+
+        print(i * 10 + j)
+    }
+    i = i + 1
+}
