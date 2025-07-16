@@ -366,37 +366,19 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
             //check for local variable
             if (scope.containsKey(id)) {
                 VarInfo info = scope.getVariable(id);
-                TypedValue.Type type = info.type;
-                //check if the value is constant if yes load it direcly instead of loading it from the slot
-                if(info.isConstant){
-                    currentMethodVisitor.visitLdcInsn(info.constValue);
-                    return new TypedValue( type , info.constValue);
-                }
-                if (type == TypedValue.Type.INT) { //int
-                    currentMethodVisitor.visitVarInsn(Opcodes.ILOAD, info.slot);
-                } else if (type == TypedValue.Type.STRING) { //string
-                    currentMethodVisitor.visitVarInsn(Opcodes.ALOAD, info.slot);
-                } else if (type == TypedValue.Type.BOOL) { //its a bool but it should work just like an int under the hood
-                    currentMethodVisitor.visitVarInsn(Opcodes.ILOAD, info.slot);
-                }else if(type == TypedValue.Type.DOUBLE){
-                    currentMethodVisitor.visitVarInsn(Opcodes.DLOAD, info.slot);
-                }
-                //it returns a null because the value is in the jvm slot and cannot be retrieved , one way to solve that problem is obv to maintain another hashmap with its values , seems unreasonable just yet
-                return new TypedValue(type, null , id);
+                LoadInstr.LoadVariable(currentMethodVisitor , info);
+                return new TypedValue(info.type, null , id);
             }
             //check for struct
             if(scope.containsStruct(id)){
                 //if it exits , load the struct onto the stack , for either printing or using it further somewhere
-                if(!scope.containsStruct(id)){
-                    errorCollector.addError(ctx,"Struct '" + id + "' doesnt exist");
-                    return TypedValue.voidtype();
-                }
                 var info = scope.getStructInfo(id);
-                currentMethodVisitor.visitVarInsn(Opcodes.ALOAD,info.slot); //load the instance of the object onto the stack
+                LoadInstr.LoadStruct(currentMethodVisitor, info);
                 return new TypedValue(TypedValue.Type.STRUCT, null , info.name); //return the struct name as id in the type
             }
             errorCollector.addError( ctx , "Not recognized '" + ctx.ID() + "'");
             return TypedValue.unknowntype();
+
         } else if (ctx.TRUE() != null) {
             currentMethodVisitor.visitInsn(Opcodes.ICONST_1);
             return new TypedValue(TypedValue.Type.BOOL,true);
@@ -961,6 +943,93 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         currentMethodVisitor.visitVarInsn(Opcodes.ASTORE , scope.getLastSlot());
         StructInfo info = new StructInfo(scope.getLastSlot() , structName); //store it in the scope for later retrieval
         scope.putStruct(structVarName , info);
+        return TypedValue.voidtype();
+    }
+
+    @Override
+    public TypedValue visitPatternmatchstat(QuarkParser.PatternmatchstatContext ctx) {
+        //first differentitate if u are trying to match a literal or a struct
+        Label endLabel = new Label();
+        String ID= ctx.ID().getText(); //the ID that is supposed to matched
+        if(scope.containsStruct(ID)){
+            matchStruct(ctx);
+        }else if(scope.containsKey(ID)){
+            VarInfo info = scope.getVariable(ctx.ID().getText());
+            matchLiteral(ctx,endLabel);
+        }else{
+            errorCollector.addError(ctx,"Not recognized '" + ID +"' " );
+            return TypedValue.voidtype();
+        }
+        currentMethodVisitor.visitLabel(endLabel); //visit the endlabel whenever the pattern matches
+        return TypedValue.voidtype();
+    }
+
+    private TypedValue matchLiteral( QuarkParser.PatternmatchstatContext ctx , Label endLabel) {
+        String ID= ctx.ID().getText(); //the ID that is supposed to matched
+        VarInfo idInfo = scope.getVariable(ID);
+        boolean wildcardMatched = false;
+        //pop of the value for easier maintaince , we only push it to the stack when we need it in the arms later on
+        for(var arm : ctx.matcharms()){ //loop through each and every match arm and detect if they can be matched
+            var pattern = arm.pattern();
+            Label nextArmLabel = new Label();
+            if(wildcardMatched){
+                errorCollector.addWarning(pattern , "This pattern will never be matched because a wildcard '_' arm appears earlier and matches all values.");
+                continue;
+            }
+            if(pattern.isatom != null){
+                TypedValue match = visit(pattern.atom());
+                if(match == null){
+                    System.out.println("how are u null bro? ");
+                }
+                if(match.type != idInfo.type || match.type == TypedValue.Type.VOID){ //tying to match different data types or is an void data type
+                    errorCollector.addWarning(pattern, "Pattern of type '" + TypedValue.typeString(match.type)+ "' will never match value of type '" + TypedValue.typeString(idInfo.type)+ "'.");
+                    if(TypedValue.Type.DOUBLE == match.type){
+                        currentMethodVisitor.visitInsn(Opcodes.POP2);
+                    }else{
+                        currentMethodVisitor.visitInsn(Opcodes.POP);
+                    }
+                    continue;
+                }
+                else{ //data types are same ,
+                    //start by pushing the value to be matched onto the stack
+                    LoadInstr.LoadVariable(currentMethodVisitor, idInfo );
+                    //emit the comparison instruction and the end label
+                    ComparisonInstr.compareNotEqual(currentMethodVisitor , match.type , nextArmLabel);
+                    List<QuarkParser.StatContext> stats = arm.matchbody().stat();
+                    if(stats.size() == 1){
+                        visit(stats.get(0));
+                    }else{
+                        for(var stat: stats){
+                            visit(stat);
+                        }
+                    }
+                    //incase u have executed the above statements goto endlabel since only 1 pattern can be matched
+                    currentMethodVisitor.visitJumpInsn(Opcodes.GOTO ,endLabel);
+                    //incase u land up here move on to the next arm label
+                    currentMethodVisitor.visitLabel(nextArmLabel);
+                }
+            }
+            else if(pattern.istruct != null){
+                errorCollector.addWarning(pattern, "Constructor pattern will never match a literal value of type '" + ID + "'.");
+                continue;
+            }
+            else { //wildcard
+                wildcardMatched = true;
+                List<QuarkParser.StatContext> stats = arm.matchbody().stat();
+                if(stats.size() == 1){
+                    visit(stats.get(0));
+                }else{
+                    for(var stat: stats){
+                        visit(stat);
+                    }
+                }
+                currentMethodVisitor.visitJumpInsn(Opcodes.GOTO ,endLabel);
+            }
+        }
+        return TypedValue.voidtype();
+    }
+
+    public TypedValue matchStruct(QuarkParser.PatternmatchstatContext ctx){
         return TypedValue.voidtype();
     }
 }

@@ -1,12 +1,11 @@
 import java.util.Scanner;
 public class demo{
 	public static void main(String[] args){
-		int i = 0;
-		while(i < 10){
-			i++;
-			if(i == 5){
-				break;
-			}
+		int x = 10;
+		if(x == 10){
+			System.out.println("h");
+		}else if(x == 7){
+			System.out.println("a");
 		}
 	}
 }

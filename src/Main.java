@@ -91,6 +91,9 @@ public class Main{
                 System.out.println("Error occured when compiling " + inputPath.toString());
                 continue;
             }
+            if(visitor.errorCollector.hasWarnings()){
+                visitor.errorCollector.reportAll();
+            }
 
             //finish up the MethodVisitor and ClassWriter
             byte[] bytecode = cw.toByteArray();

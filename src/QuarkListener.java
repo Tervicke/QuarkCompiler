@@ -187,6 +187,46 @@ public interface QuarkListener extends ParseTreeListener {
 	 */
 	void exitWhilestat(QuarkParser.WhilestatContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link QuarkParser#patternmatchstat}.
+	 * @param ctx the parse tree
+	 */
+	void enterPatternmatchstat(QuarkParser.PatternmatchstatContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link QuarkParser#patternmatchstat}.
+	 * @param ctx the parse tree
+	 */
+	void exitPatternmatchstat(QuarkParser.PatternmatchstatContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link QuarkParser#matcharms}.
+	 * @param ctx the parse tree
+	 */
+	void enterMatcharms(QuarkParser.MatcharmsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link QuarkParser#matcharms}.
+	 * @param ctx the parse tree
+	 */
+	void exitMatcharms(QuarkParser.MatcharmsContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link QuarkParser#matchbody}.
+	 * @param ctx the parse tree
+	 */
+	void enterMatchbody(QuarkParser.MatchbodyContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link QuarkParser#matchbody}.
+	 * @param ctx the parse tree
+	 */
+	void exitMatchbody(QuarkParser.MatchbodyContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link QuarkParser#pattern}.
+	 * @param ctx the parse tree
+	 */
+	void enterPattern(QuarkParser.PatternContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link QuarkParser#pattern}.
+	 * @param ctx the parse tree
+	 */
+	void exitPattern(QuarkParser.PatternContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link QuarkParser#assigstat}.
 	 * @param ctx the parse tree
 	 */

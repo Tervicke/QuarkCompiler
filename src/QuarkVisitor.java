@@ -118,6 +118,30 @@ public interface QuarkVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitWhilestat(QuarkParser.WhilestatContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link QuarkParser#patternmatchstat}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPatternmatchstat(QuarkParser.PatternmatchstatContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link QuarkParser#matcharms}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitMatcharms(QuarkParser.MatcharmsContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link QuarkParser#matchbody}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitMatchbody(QuarkParser.MatchbodyContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link QuarkParser#pattern}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPattern(QuarkParser.PatternContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link QuarkParser#assigstat}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

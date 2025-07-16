@@ -16,6 +16,7 @@ stat
 | declarestruct
 | continuestatement
 | breakstatement
+| patternmatchstat
 | LineComment
 | NEWLINE
 
@@ -39,6 +40,13 @@ continuestatement: 'continue' ;
 breakstatement: 'break' ;
 
 whilestat: 'while' '(' expr ')' block;
+
+patternmatchstat: 'match' ID '{' matcharms* '}';
+matcharms: pattern '=>' matchbody;
+matchbody: stat | '{' stat* '}' ;
+pattern: isatom=atom   //normal literals
+         | istruct='@' ID '(' arglist? ')' //for constructor @point(x,y)
+         | iswildcard='_' ; //wildcard
 
 assigstat : TYPE? ID '=' ( expr) ;
 printstat : 'print' '(' (expr) ')' ;

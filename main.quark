@@ -1,18 +1,13 @@
-int i = 0
-while (i < 3) {
-    int j = 0
-    while (j < 4) {
-        j = j + 1
+int x = 10
 
-        if (j == 2) {
-            continue
-        }
-
-        if (j == 4) {
-            break
-        }
-
-        print(i * 10 + j)
+match x {
+    "hello" => print("this should throw an warning saying different data types will never match")
+    11 => print("this should not be printed")
+    @point(x,10) => print("this should throw an warning saying constructor and a literal will never match")
+    _ => {
+        print("this is wildcard match , this arm always execute")
+        print("multiple statements working")
     }
-    i = i + 1
+    10 => print("this should also throw an warning since wildcard is already matched")
+    15 => print("this should also throw an warning since wildcard is already matched")
 }
