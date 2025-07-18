@@ -1222,12 +1222,15 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         }
         String structName = structVarMap.get(structVarName);
         var structFields = structFieldOrder.get(structName);
-        if(ctx.idlist().ID().size() != structFields.size()){
-            errorCollector.addError(ctx.idlist(), "expected " + structFields.size() + " arguments but found " +  ctx.idlist().ID().size());
+        if(ctx.idlist().destructfield().size() != structFields.size()){
+            errorCollector.addError(ctx.idlist(), "expected " + structFields.size() + " arguments but found " +  ctx.idlist().destructfield().size());
             return TypedValue.unknowntype();
         }
         for(int i = 0 ; i < structFields.size() ; i++){
-            String id = ctx.idlist().ID(i).getText();
+            if(ctx.idlist().destructfield(i).skip != null){
+                continue;
+            }
+            String id = ctx.idlist().destructfield(i).getText();
             FieldInfo fieldInfo = structFields.get(i);
             String fieldName = fieldInfo.name;
             String fieldDescriptor = fieldInfo.descriptor;

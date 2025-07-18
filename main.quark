@@ -6,7 +6,6 @@ struct Book {
 Book b("The Pragmatic Programmer", 1999)
 
 // Destructure the Book into title and year
-let [title, year] = b
+let [ _ , year] = b
 
-print(title)
 print(year)

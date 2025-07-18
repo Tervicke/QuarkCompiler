@@ -100,6 +100,12 @@ public interface QuarkVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitIdlist(QuarkParser.IdlistContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link QuarkParser#destructfield}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDestructfield(QuarkParser.DestructfieldContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link QuarkParser#ifstatement}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

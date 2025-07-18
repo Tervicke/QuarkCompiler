@@ -34,8 +34,8 @@ structstats: structfield* ;
 structfield: TYPE ID ;
 declarestruct: ID ID'(' arglist? ')' ;
 destructstat: 'let' '[' idlist ']' '=' ID ;
-idlist: ID (',' ID)* ;
-
+idlist: destructfield (',' destructfield)* ;
+destructfield: id=ID | skip='_' ;
 ifstatement: 'if' '(' expr ')' block ('else' block )?;
 block: '{' stat* '}' ;
 

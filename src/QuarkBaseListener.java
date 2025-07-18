@@ -196,6 +196,18 @@ public class QuarkBaseListener implements QuarkListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterDestructfield(QuarkParser.DestructfieldContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitDestructfield(QuarkParser.DestructfieldContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterIfstatement(QuarkParser.IfstatementContext ctx) { }
 	/**
 	 * {@inheritDoc}
