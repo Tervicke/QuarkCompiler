@@ -1,4 +1,6 @@
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 public class Scope {
     Map<String,VarInfo> variables = new HashMap<String, VarInfo>();
@@ -52,4 +54,24 @@ public class Scope {
     public int getLastSlot(){
         return lastSlot;
     }
+    public List<String> pushScopeVars(Map<String , VarInfo> localVars) {
+        List<String> addedKeys = new ArrayList<>();
+        for (Map.Entry<String, VarInfo> entry : localVars.entrySet()) {
+            String key = entry.getKey();
+            if (!variables.containsKey(key)) {
+                addedKeys.add(key); // only track new keys
+            }
+            variables.put(key, entry.getValue());
+        }
+        return addedKeys;
+
+    }
+    public void removeScopeVars(List<String> localVars){
+
+        for (String key : localVars) {
+            variables.remove(key);
+        }
+
+    }
+
 }

@@ -8,6 +8,17 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.BiFunction;
 
+
+//used to store the fields for the structs
+class FieldInfo {
+    String name;
+    String descriptor;
+    FieldInfo(String name, String descriptor) {
+        this.name = name;
+        this.descriptor = descriptor;
+    }
+}
+
 public class Quark extends QuarkBaseVisitor<TypedValue> {
     private static Set<String> STANDARDLIBRARY = Set.of();
     //function Id is a special and unique type of Id that is generated in the following way
@@ -27,11 +38,20 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
     private final String className;
     final ErrorCollector errorCollector = new ErrorCollector();
     private final DynamicLoader classLoader = new DynamicLoader();
-    private final Map<String,Class<?>> structMap = new HashMap<>();
+    private final Map<String,Class<?>> structMap = new HashMap<>(); //stores the class name and class which is loaded dynamically
     private final Map<String,String> structVarMap = new HashMap<>();
+    private final Map<String,ArrayList<FieldInfo>> structFieldOrder = new HashMap<>(); // this stores the fields in order according to the class name fieldinfo itself stores the name and its descriptor
+
     private final String path;
     private final Deque<Label> startOfLoops = new ArrayDeque<>(); //store all the start of the loops
     private final Deque<Label> endOfLoops = new ArrayDeque<>(); //store all the ends of the loop
+
+    //used to distinguish between a pattern matching Id visit vs a normal id visit , ispattermmatch will be true if the expression is visited for a pattern match and will toggle the matched boolean to true or false
+    private boolean  isPatternMatchMode = false;
+    private boolean patternMatchedExitingVar = false;
+    private boolean isPatternMatchModeVariable = false;
+    private String patternMatchedVariableName = "default";
+
 
     private final Map<String, Integer> intOpcodes = Map.of(
             "+", Opcodes.IADD,
@@ -142,6 +162,7 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
             String id = ctx.ID().getText();
             String definedType = ctx.TYPE().getText();
             if(definedType.equals("const")){ //constant declartion
+                isPatternMatchMode = false; // throw an error since there is no matching to be done
                 type = visit(ctx.expr());
                 VarInfo constInfo = VarInfo.constant(type.value , type.type);
 
@@ -362,11 +383,13 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
             currentMethodVisitor.visitLdcInsn(str);
             return new TypedValue(TypedValue.Type.STRING, str);
         } else if (ctx.ID() != null) {
+            isPatternMatchModeVariable = true;
             String id = ctx.ID().getText();
             //check for local variable
             if (scope.containsKey(id)) {
                 VarInfo info = scope.getVariable(id);
                 LoadInstr.LoadVariable(currentMethodVisitor , info);
+                patternMatchedExitingVar = true;
                 return new TypedValue(info.type, null , id);
             }
             //check for struct
@@ -374,9 +397,19 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
                 //if it exits , load the struct onto the stack , for either printing or using it further somewhere
                 var info = scope.getStructInfo(id);
                 LoadInstr.LoadStruct(currentMethodVisitor, info);
+                patternMatchedExitingVar = true;
                 return new TypedValue(TypedValue.Type.STRUCT, null , info.name); //return the struct name as id in the type
             }
-            errorCollector.addError( ctx , "Not recognized '" + ctx.ID() + "'");
+
+            //dintinguish between pattern matching visits
+
+            if(isPatternMatchMode){
+                patternMatchedExitingVar = false; //doesnt exist also no need to throw error
+                patternMatchedVariableName = id; // update the name since it will be used in the patterm matcher to bind
+            }else{
+                errorCollector.addError( ctx , "Not recognized '" + ctx.ID() + "'");
+            }
+
             return TypedValue.unknowntype();
 
         } else if (ctx.TRUE() != null) {
@@ -837,6 +870,7 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         mv.visitMethodInsn(Opcodes.INVOKESPECIAL,"java/lang/Object","<init>" ,"()V");
 
         int slot = 1;
+        ArrayList<FieldInfo> fieldOrder = new ArrayList<>();
         for(Map.Entry<String , String> entry : fields.entrySet()){
             mv.visitVarInsn(Opcodes.ALOAD,0);
             Type type = javaType.get(entry.getValue());
@@ -851,7 +885,12 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
             }
             slot++;
             mv.visitFieldInsn(Opcodes.PUTFIELD, name , entry.getKey(), TypedValue.getDescriptorFromString(entry.getValue()));
+            fieldOrder.add( new FieldInfo(entry.getKey() , TypedValue.getDescriptorFromString(entry.getValue()))); //add the fieldinfo struct
         }
+
+        //push the field order according to the struct
+        structFieldOrder.put(name , fieldOrder);
+
         mv.visitInsn(Opcodes.RETURN);
         mv.visitMaxs(-1, -1);
         mv.visitEnd();
@@ -943,6 +982,7 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         currentMethodVisitor.visitVarInsn(Opcodes.ASTORE , scope.getLastSlot());
         StructInfo info = new StructInfo(scope.getLastSlot() , structName); //store it in the scope for later retrieval
         scope.putStruct(structVarName , info);
+        structVarMap.put(structVarName,structName);
         return TypedValue.voidtype();
     }
 
@@ -952,7 +992,7 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         Label endLabel = new Label();
         String ID= ctx.ID().getText(); //the ID that is supposed to matched
         if(scope.containsStruct(ID)){
-            matchStruct(ctx);
+            matchStruct(ctx , endLabel);
         }else if(scope.containsKey(ID)){
             VarInfo info = scope.getVariable(ctx.ID().getText());
             matchLiteral(ctx,endLabel);
@@ -1028,8 +1068,121 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         }
         return TypedValue.voidtype();
     }
+    public TypedValue.Type mapClassToType(Class<?> clazz) {
+        if (clazz == int.class || clazz == Integer.class) {
+            return TypedValue.Type.INT;
+        } else if (clazz == double.class || clazz == Double.class) {
+            return TypedValue.Type.DOUBLE;
+        } else if (clazz == boolean.class || clazz == Boolean.class) {
+            return TypedValue.Type.BOOL;
+        } else if (clazz == String.class) {
+            return TypedValue.Type.STRING;
+        } else if (clazz == void.class || clazz == Void.class) {
+            return TypedValue.Type.VOID;
+        } else {
+            return TypedValue.Type.STRUCT; // or STRUCT if it's a user-defined class
+        }
+    }
+    public TypedValue matchStruct(QuarkParser.PatternmatchstatContext ctx , Label endLabel){
+        String target = ctx.ID().getText();
+        String targetStructName = structVarMap.get(target);
+        int maxBindingsUsed = 0; //this keeps the track of the maxum bindings used in the arm , we assume the worst case and update the slot accordingly after the pattern matching
+        boolean wildcardMatched = false;
+        for(var arm : ctx.matcharms()){
+            if(wildcardMatched){
+                errorCollector.addWarning(arm , "shodowed by wildcard");
+                continue;
+            }
 
-    public TypedValue matchStruct(QuarkParser.PatternmatchstatContext ctx){
+            Map<String,VarInfo> bindings = new HashMap<>(); //this binds the id name and the field which is to be binded , obv the field is of the classthat isbeing matched
+            Label nextArmLabel = new Label();
+            var pattern = arm.pattern();
+            int localBindings = 0;
+
+            int tempLocalSlot = scope.getLastSlot();
+
+            if(pattern.isatom != null){
+                errorCollector.addWarning(pattern, "literal value will never match a constructor");
+                continue;
+            }
+            else if(pattern.istruct != null){
+                var structName = pattern.ID().getText();
+
+                if(!structMap.containsKey(structName)){
+                    errorCollector.addError(pattern,"Not recoginzed `" + structName +"' ");
+                    continue;
+                }
+                if(!structName.equals(targetStructName)){
+                    errorCollector.addWarning(pattern,"struct of type '" + structName + "' will never match struct of type '" + targetStructName+ "'");
+
+                    continue;
+                }
+
+                Constructor<?> constructor = structMap.get(targetStructName).getDeclaredConstructors()[0];
+                Class<?>[] paramTypes = constructor.getParameterTypes();
+
+                //return error if the size of the parameters of constructor the class i.e the struct and the parameters provided does not match
+                if(paramTypes.length != pattern.arglist().expr().size()){
+                    errorCollector.addError(pattern,"Error struct '" + structName + "' expects " + paramTypes.length + " no of arguments");
+                    return TypedValue.voidtype();
+                }
+                //loop over all of them 1 by 1
+                var args = pattern.arglist();
+                var fieldOrder = structFieldOrder.get(targetStructName);
+                for(int i = 0 ; i < args.expr().size() ; i++){
+                    // will the load the date
+                    isPatternMatchMode = true;
+                    isPatternMatchModeVariable = false;
+
+                    TypedValue type = visit( args.expr(i) );
+
+                    if(patternMatchedExitingVar || !isPatternMatchModeVariable){ //either its a literal which is its not a variable and if its a variable then it needs to exist in the symbol table to make sure its type can be checked
+
+                        if(!(type.type.equals(mapClassToType(paramTypes[i])))){
+                            errorCollector.addError(args.expr(i),"expected '" + TypedValue.typeString(mapClassToType(paramTypes[i]))+ "' found '" + TypedValue.typeString(type.type)+ "' ");
+                            return TypedValue.voidtype();
+                        }
+                        //the first value of the expr is already pushed on the stack
+                        //start by pushing the local struct value onto the stack
+                        var info  = scope.getStructInfo(target);
+                        currentMethodVisitor.visitVarInsn(Opcodes.ALOAD, info.slot);
+                        currentMethodVisitor.visitFieldInsn(Opcodes.GETFIELD , targetStructName , fieldOrder.get(i).name , fieldOrder.get(i).descriptor);
+                        ComparisonInstr.compareNotEqual(currentMethodVisitor , type.type , nextArmLabel);
+                    }
+                    else{ //needs to be binded emit the bytecode
+                        var info  = scope.getStructInfo(target);
+                        currentMethodVisitor.visitVarInsn(Opcodes.ALOAD, info.slot);
+                        currentMethodVisitor.visitFieldInsn(Opcodes.GETFIELD , targetStructName , fieldOrder.get(i).name , fieldOrder.get(i).descriptor);
+                        var varInfo = VarInfo.variable(
+                                tempLocalSlot, //value is null since we do not know it as compile time
+                                TypedValue.getTypeFromDescriptor( fieldOrder.get(i).descriptor)
+                        );
+                        LoadInstr.storeVariable(currentMethodVisitor , varInfo);
+                        //update the local slot
+                        if(varInfo.type == TypedValue.Type.DOUBLE){ //if the value if double increase the slot by 2
+                            tempLocalSlot+=2;
+                        }else{
+                            tempLocalSlot+=1;
+                        }
+                        bindings.put(patternMatchedVariableName , varInfo); //to be binded and keep a record
+                    }
+
+                }
+                //once all the expressions are done , insert the binding variables to the new scope
+                var added = scope.pushScopeVars(bindings);
+                visit(arm.matchbody()); //visit the actual body with the update scope
+                scope.removeScopeVars(added); //remove the added vars and return the scope to its default setting
+
+            }else{ //wildcard matching
+                visit(arm.matchbody());
+                wildcardMatched = true;
+                currentMethodVisitor.visitJumpInsn(Opcodes.GOTO,endLabel);
+            }
+            System.out.println(bindings);
+            maxBindingsUsed = Math.max(maxBindingsUsed , bindings.size()); //update the max binding slot
+            currentMethodVisitor.visitJumpInsn(Opcodes.GOTO , endLabel);
+            currentMethodVisitor.visitLabel(nextArmLabel);
+        }
         return TypedValue.voidtype();
     }
 }

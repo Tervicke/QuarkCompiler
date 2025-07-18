@@ -1,3 +1,4 @@
+//pattern match a struct
 struct point {
     int x
     int y
@@ -38,7 +39,7 @@ match x {
         print("this will return an warning")
     }
     10 => print("this should get matched")
-    _ => {
-        print("wild card will never matched")
+    _ = > {
+        print("wild card will never matched");
     }
 }

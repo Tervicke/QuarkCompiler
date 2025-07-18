@@ -20,4 +20,19 @@ public class LoadInstr {
     public static void LoadStruct(MethodVisitor visitor , StructInfo structInfo){
         visitor.visitVarInsn(Opcodes.ALOAD,structInfo.slot); //load the instance of the object onto the stack
     }
+
+    public static void storeVariable(MethodVisitor visitor , VarInfo varInfo){
+        switch (varInfo.type){
+            case INT:
+            case BOOL:
+                visitor.visitVarInsn(Opcodes.ISTORE, varInfo.slot);
+                break;
+            case STRING:
+                visitor.visitVarInsn(Opcodes.ASTORE, varInfo.slot);
+                break;
+            case DOUBLE:
+                visitor.visitVarInsn(Opcodes.DSTORE, varInfo.slot);
+                break;
+        }
+    }
 }

@@ -115,4 +115,25 @@ public class TypedValue {
         };
         return res;
     }
+    public static Type getTypeFromDescriptor(String desc) {
+        switch (desc) {
+            case "I":
+                return Type.INT;
+            case "Z":
+                return Type.BOOL;
+            case "V":
+                return Type.VOID;
+            case "D":
+                return Type.DOUBLE;
+            case "Ljava/lang/String;":
+                return Type.STRING;
+            default:
+                if (desc.startsWith("L") && desc.endsWith(";")) {
+                    return Type.STRUCT;
+                }
+                return Type.UNKNOWN;
+        }
+    }
+
+
 }
