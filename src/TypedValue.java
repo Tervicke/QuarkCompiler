@@ -7,16 +7,19 @@ public class TypedValue {
 
     public final Type type;
     public final Object value;
-    public String id = "not specified"; //id is used by structs to return the type of struct
+    public String structName = "not specified"; //id is used by structs to return the type of struct or can be used by variables to return their name
+    public String Id = "not specified";
 
-    public TypedValue(Type type , Object value) {
-        this.type = type;
-        this.value = value;
-    }
     public TypedValue(Type type , Object value , String id) {
         this.type = type;
         this.value = value;
-        this.id = id;
+        this.Id = id;
+    }
+    public TypedValue(Type type , Object value , String structName ,String id) {
+        this.type = type;
+        this.value = value;
+        this.structName = structName;
+        this.Id = id;
     }
 
     public static String typeString(Type type){
@@ -53,11 +56,11 @@ public class TypedValue {
         }
     }
     public static TypedValue voidtype() {
-        return new TypedValue(Type.VOID, null);
+        return new TypedValue(Type.VOID, null , null);
     }
 
     public static TypedValue unknowntype() {
-        return new TypedValue(Type.UNKNOWN, null);
+        return new TypedValue(Type.UNKNOWN, null , null);
     }
 
     public static org.objectweb.asm.Type TypeTOASMType(Type type){

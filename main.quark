@@ -3,42 +3,10 @@ struct point {
     int y
 }
 
-struct circle {
-    int radius
-}
-
 point p(3 , 5)
 
 match p {
-    8 => {
-        print("should also give warnings")
-    }
-    @circle( x ) => print("helloworld")
-    @point(2,y) => {
-        print("matched")
-        print(y)
-    }
-    @point(1 , y) => {
-        print("matched")
-        print(y)
-    }
-    @point(x,y) => {
-        print(x)
-        print(y)
-    }
-    @point(3,5) => {
-        print("should give warning")
-    }
-}
-
-//pattern match a literal
-int x = 10
-match x {
-    @point(x,y) => {
-        print("this will return an warning")
-    }
-    10 => print("this should get matched")
-    _ => {
-        print("wild card will never matched")
+    @point(p.x , p.y) => {
+        print("should get matched")
     }
 }

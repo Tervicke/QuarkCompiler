@@ -215,7 +215,7 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         currentMethodVisitor.visitLabel(truelabel);
         currentMethodVisitor.visitInsn(Opcodes.ICONST_1);
         currentMethodVisitor.visitLabel(endlabel);
-        return new TypedValue(TypedValue.Type.BOOL, null);
+        return new TypedValue(TypedValue.Type.BOOL, null , null);
     }
 
     @Override
@@ -242,7 +242,7 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         currentMethodVisitor.visitInsn(Opcodes.ICONST_1);
 
         currentMethodVisitor.visitLabel(endLabel);
-        return new TypedValue(TypedValue.Type.BOOL, null);
+        return new TypedValue(TypedValue.Type.BOOL, null , null);
     }
 
     public TypedValue visitEqualityexprForIf(QuarkParser.EqualityexprContext ctx, Label endLabel) { //endLabel is changed in the if visitor to point after the end of the if block
@@ -262,7 +262,7 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         }
         String op = ctx.getChild(1).getText();
         currentMethodVisitor.visitJumpInsn(invertedOps.get(op), endLabel);
-        return new TypedValue(TypedValue.Type.UNKNOWN, null);
+        return TypedValue.voidtype();
     }
     public TypedValue visitRelationalExprForIf(QuarkParser.RelationalexprContext ctx, Label endlabel) {
         if (ctx.getChildCount() == 1) {
@@ -277,7 +277,7 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
             return TypedValue.unknowntype();
         }
         currentMethodVisitor.visitJumpInsn(opcode, endlabel);
-        return new TypedValue(TypedValue.Type.UNKNOWN, null);
+        return TypedValue.voidtype();
     }
 
     @Override
@@ -305,9 +305,9 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         if (valueKnown) {
             BiFunction<Integer, Integer, Integer> operation = intOps.get(op);
             int value = operation.apply((Integer) type1.value, (Integer) type2.value);
-            return new TypedValue(TypedValue.Type.INT, value);
+            return new TypedValue(TypedValue.Type.INT, value , null);
         }
-        return new TypedValue(TypedValue.Type.INT, null);
+        return new TypedValue(TypedValue.Type.INT, null , null);
     }
 
     @Override
@@ -335,9 +335,9 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         if (valueKnown) {
             BiFunction<Integer, Integer, Integer> operation = intOps.get(op);
             int value = operation.apply((Integer) type1.value, (Integer) type2.value);
-            return new TypedValue(TypedValue.Type.INT, value);
+            return new TypedValue(TypedValue.Type.INT, value , null);
         }
-        return new TypedValue(TypedValue.Type.INT, null);
+        return new TypedValue(TypedValue.Type.INT, null , null);
     }
 
     @Override
@@ -345,7 +345,34 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         if(ctx.access().ID().isEmpty()){ //check if the access is empty , meaning its an normal literal without involement of any structs
             return visit(ctx.unaryExpr());
         }
-        return TypedValue.voidtype();
+        TypedValue type = visit(ctx.unaryExpr());
+        if(type.Id == null){
+            errorCollector.addError(ctx,"Not a valid struct");
+            return TypedValue.unknowntype();
+        }
+        if(!structVarMap.containsKey(type.Id)){
+            errorCollector.addError(ctx,"Struct `" + type.Id + "' not found");
+            return TypedValue.unknowntype();
+        }
+        var fieldOrder = structFieldOrder.get(type.structName);
+        String fieldName = ctx.access().ID(0).getText(); //only 1 value per struct we are essentially ignoring this a.b.c or a.b.c.d
+        boolean structFieldExists = false;
+        String fieldDescriptor = "";
+        for (FieldInfo f : fieldOrder) {
+            if (f.name.equals(fieldName)) {
+                structFieldExists = true;
+                fieldDescriptor = f.descriptor;
+                break;
+            }
+        }
+        if(!structFieldExists){
+            errorCollector.addError(ctx , "struct '" + type.structName + "' does not have a field '" + fieldName + "' ");
+            return TypedValue.unknowntype();
+        }
+        //emit the bytecode load the fied onto the stack
+        // we dont need to emit the load instruction since its already loaded when we visit it above
+        currentMethodVisitor.visitFieldInsn(Opcodes.GETFIELD , type.structName , fieldName , fieldDescriptor);
+        return new TypedValue(TypedValue.getTypeFromDescriptor(fieldDescriptor) , null , null);
     }
 
     @Override
@@ -375,13 +402,13 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         if (ctx.INT() != null) {
             int value = Integer.parseInt(ctx.INT().getText());
             currentMethodVisitor.visitLdcInsn(value);
-            return new TypedValue(TypedValue.Type.INT, value);
+            return new TypedValue(TypedValue.Type.INT, value , null);
         }
         if (ctx.STRING() != null) {
             String str = ctx.STRING().getText();
             str = str.substring(1, str.length() - 1);
             currentMethodVisitor.visitLdcInsn(str);
-            return new TypedValue(TypedValue.Type.STRING, str);
+            return new TypedValue(TypedValue.Type.STRING, str , null);
         } else if (ctx.ID() != null) {
             isPatternMatchModeVariable = true;
             String id = ctx.ID().getText();
@@ -398,7 +425,7 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
                 var info = scope.getStructInfo(id);
                 LoadInstr.LoadStruct(currentMethodVisitor, info);
                 patternMatchedExitingVar = true;
-                return new TypedValue(TypedValue.Type.STRUCT, null , info.name); //return the struct name as id in the type
+                return new TypedValue(TypedValue.Type.STRUCT, null , info.name , id); //return the struct name as id in the type
             }
 
             //dintinguish between pattern matching visits
@@ -414,17 +441,17 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
 
         } else if (ctx.TRUE() != null) {
             currentMethodVisitor.visitInsn(Opcodes.ICONST_1);
-            return new TypedValue(TypedValue.Type.BOOL,true);
+            return new TypedValue(TypedValue.Type.BOOL,true , null);
         } else if (ctx.FALSE() != null) {
             currentMethodVisitor.visitInsn(Opcodes.ICONST_0);
-            return new TypedValue(TypedValue.Type.BOOL,false);
+            return new TypedValue(TypedValue.Type.BOOL,false , null);
         }else if(ctx.funccall() != null){
             return visitFunccall(ctx.funccall());
         }else if(ctx.DOUBLE() != null){
             String text = ctx.DOUBLE().getText();
             double value = Double.parseDouble(text);
             currentMethodVisitor.visitLdcInsn(value);
-            return new TypedValue(TypedValue.Type.DOUBLE , value);
+            return new TypedValue(TypedValue.Type.DOUBLE , value , null);
         }
         return visit(ctx.expr());
     }
@@ -444,7 +471,7 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
             //invoke the tostring() on the object that is loaded after the visit
             currentMethodVisitor.visitMethodInsn(
                     Opcodes.INVOKEVIRTUAL,
-                    type.id, // internal name like "point"
+                    type.structName, // internal name like "point"
                     "toString",
                     "()Ljava/lang/String;"
             );
@@ -486,7 +513,7 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
             return TypedValue.unknowntype();
         }
         currentMethodVisitor.visitJumpInsn(invertedOps.get(op),endLabel);
-        return new TypedValue(TypedValue.Type.UNKNOWN, null);
+        return TypedValue.voidtype();
     }
 
     public TypedValue visitEqualityExprForWhile(QuarkParser.EqualityexprContext ctx , Label endLabel){
@@ -503,7 +530,7 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         }
         String op = ctx.getChild(1).getText();
         currentMethodVisitor.visitJumpInsn(invertedOps.get(op),endLabel);
-        return new TypedValue(TypedValue.Type.UNKNOWN, null);
+        return TypedValue.unknowntype();
     }
 
     @Override
@@ -638,7 +665,7 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         //visit(ctx.block());
 
         //visit every stat while checking if there exists a return statement and if it does then capture the return type to verify it later
-        TypedValue actualReturnType = new TypedValue(TypedValue.Type.VOID , null);
+        TypedValue actualReturnType = new TypedValue(TypedValue.Type.VOID , null , null);
         //try to get the return type
         for(var stat : ctx.block().stat()){
             if(stat.returnstat() != null){
@@ -711,7 +738,7 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
 
         //converting it to string to convert it to TypedValue.Type org.asm.web -> string -> TypedValue.Type
         String strType = stringType.get(returnType);
-        return new TypedValue(TypedValue.stringType(strType), null);
+        return new TypedValue(TypedValue.stringType(strType), null , null);
     }
     @Override
     public TypedValue visitFunccall(QuarkParser.FunccallContext ctx) {
@@ -763,7 +790,7 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         );
         //converting it to string to convert it to TypedValue.Type org.asm.web -> string -> TypedValue.Type
         String strType = stringType.get(returnType);
-        return new TypedValue(TypedValue.stringType(strType), null);
+        return new TypedValue(TypedValue.stringType(strType), null , null);
     }
 
     @Override
