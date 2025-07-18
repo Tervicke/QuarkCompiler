@@ -5,4 +5,9 @@ struct person{
 }
 
 person p("tervicke",18 , true)
+// print the entire struct
 print(p)
+
+//destructuring
+let [ name , age , _ ] = p
+print(name , " is " , age , " years old")
