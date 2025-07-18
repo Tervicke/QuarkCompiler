@@ -172,6 +172,12 @@ public interface QuarkVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitPrintstat(QuarkParser.PrintstatContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link QuarkParser#exprlist}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitExprlist(QuarkParser.ExprlistContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link QuarkParser#expr}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

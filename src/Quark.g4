@@ -52,7 +52,8 @@ pattern: isatom=atom   //normal literals
          | iswildcard='_' ; //wildcard
 
 assigstat : TYPE? ID '=' ( expr) ;
-printstat : 'print' '(' (expr) ')' ;
+printstat : 'print' '(' exprlist? ')' ;
+exprlist: expr (',' expr)* ;
 
 expr
     : equalityexpr;

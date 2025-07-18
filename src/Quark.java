@@ -459,28 +459,32 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
     @Override
     public TypedValue visitPrintstat(QuarkParser.PrintstatContext ctx) {
         //replace with the jvm instruction to load the print class
-        currentMethodVisitor.visitFieldInsn(Opcodes.GETSTATIC,"java/lang/System","out","Ljava/io/PrintStream;");
-        TypedValue type = visit(ctx.expr());
-        if(type.type == TypedValue.Type.INT){
-            currentMethodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,"java/io/PrintStream","println","(I)V");
-        }else if( type.type == TypedValue.Type.STRING){
-            currentMethodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,"java/io/PrintStream","println","(Ljava/lang/Object;)V");
-        }else if(type.type == TypedValue.Type.BOOL){
-            currentMethodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,"java/io/PrintStream","println","(Z)V");
-        }else if(type.type == TypedValue.Type.STRUCT){
-            //invoke the tostring() on the object that is loaded after the visit
-            currentMethodVisitor.visitMethodInsn(
-                    Opcodes.INVOKEVIRTUAL,
-                    type.structName, // internal name like "point"
-                    "toString",
-                    "()Ljava/lang/String;"
-            );
+        for(var expr : ctx.exprlist().expr()){
+            currentMethodVisitor.visitFieldInsn(Opcodes.GETSTATIC,"java/lang/System","out","Ljava/io/PrintStream;");
+            TypedValue type = visit(expr);
+            if(type.type == TypedValue.Type.INT){
+                currentMethodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,"java/io/PrintStream","print","(I)V");
+            }else if( type.type == TypedValue.Type.STRING){
+                currentMethodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,"java/io/PrintStream","print","(Ljava/lang/Object;)V");
+            }else if(type.type == TypedValue.Type.BOOL){
+                currentMethodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL,"java/io/PrintStream","print","(Z)V");
+            }else if(type.type == TypedValue.Type.STRUCT){
+                //invoke the tostring() on the object that is loaded after the visit
+                currentMethodVisitor.visitMethodInsn(
+                        Opcodes.INVOKEVIRTUAL,
+                        type.structName, // internal name like "point"
+                        "toString",
+                        "()Ljava/lang/String;"
+                );
 
-            currentMethodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V");
-        }else if(type.type == TypedValue.Type.DOUBLE){
-            currentMethodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "println", "(D)V");
+                currentMethodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "print", "(Ljava/lang/String;)V");
+            }else if(type.type == TypedValue.Type.DOUBLE){
+                currentMethodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "print", "(D)V");
+            }
         }
-        return type;
+        currentMethodVisitor.visitFieldInsn(Opcodes.GETSTATIC,"java/lang/System","out","Ljava/io/PrintStream;");
+        currentMethodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "println", "()V");
+        return TypedValue.voidtype();
     }
     @Override
     public TypedValue visitIfstatement(QuarkParser.IfstatementContext ctx) {
