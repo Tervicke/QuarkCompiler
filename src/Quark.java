@@ -1212,4 +1212,31 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         }
         return TypedValue.voidtype();
     }
+
+    @Override
+    public TypedValue visitDestructstat(QuarkParser.DestructstatContext ctx) {
+        String structVarName = ctx.ID().getText();
+        if(!structVarName.contains(structVarName)){
+            errorCollector.addError(ctx,"not recongnized '" + structVarName + "'");
+            return TypedValue.unknowntype();
+        }
+        String structName = structVarMap.get(structVarName);
+        var structFields = structFieldOrder.get(structName);
+        if(ctx.idlist().ID().size() != structFields.size()){
+            errorCollector.addError(ctx.idlist(), "expected " + structFields.size() + " arguments but found " +  ctx.idlist().ID().size());
+            return TypedValue.unknowntype();
+        }
+        for(int i = 0 ; i < structFields.size() ; i++){
+            String id = ctx.idlist().ID(i).getText();
+            FieldInfo fieldInfo = structFields.get(i);
+            String fieldName = fieldInfo.name;
+            String fieldDescriptor = fieldInfo.descriptor;
+            VarInfo varInfo = VarInfo.variable(scope.getLastSlot() , TypedValue.getTypeFromDescriptor(fieldDescriptor));
+            currentMethodVisitor.visitVarInsn(Opcodes.ALOAD , scope.getStructInfo(structVarName).slot);
+            currentMethodVisitor.visitFieldInsn(Opcodes.GETFIELD , structName , fieldName , fieldDescriptor);
+            LoadInstr.storeVariable(currentMethodVisitor , varInfo);
+            scope.putVariable(id , varInfo);
+        }
+        return TypedValue.voidtype();
+    }
 }

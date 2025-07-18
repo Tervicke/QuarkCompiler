@@ -17,6 +17,7 @@ stat
 | continuestatement
 | breakstatement
 | patternmatchstat
+| destructstat
 | LineComment
 | NEWLINE
 
@@ -32,6 +33,8 @@ definestructstat: 'struct' ID '{' structstats '}';
 structstats: structfield* ;
 structfield: TYPE ID ;
 declarestruct: ID ID'(' arglist? ')' ;
+destructstat: 'let' '[' idlist ']' '=' ID ;
+idlist: ID (',' ID)* ;
 
 ifstatement: 'if' '(' expr ')' block ('else' block )?;
 block: '{' stat* '}' ;

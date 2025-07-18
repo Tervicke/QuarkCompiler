@@ -1,12 +1,12 @@
-struct point {
-    int x
-    int y
+struct Book {
+    string title
+    int year
 }
 
-point p(3 , 5)
+Book b("The Pragmatic Programmer", 1999)
 
-match p {
-    @point(p.x , p.y) => {
-        print("should get matched")
-    }
-}
+// Destructure the Book into title and year
+let [title, year] = b
+
+print(title)
+print(year)
