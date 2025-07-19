@@ -44,7 +44,7 @@ breakstatement: 'break' ;
 
 whilestat: 'while' '(' expr ')' block;
 
-patternmatchstat: 'match' ID '{' matcharms* '}';
+patternmatchstat: 'match' ( ID | funccall ) '{' matcharms* '}';
 matcharms: pattern '=>' matchbody;
 matchbody: stat | '{' stat* '}' ;
 pattern: isatom=atom   //normal literals
@@ -84,6 +84,7 @@ atom : INT
 | STRING
 | TRUE
 | FALSE
+| SYMBOL
 | funccall
 | '(' expr ')'
 ;
@@ -94,10 +95,12 @@ TYPE
     | 'string'
     | 'bool'
     | 'double'
-    | 'const' ;
+    | 'const'
+    | 'symbol' ;
 TRUE  : 'true' ;
 FALSE : 'false' ;
 ID : [a-zA-Z_][a-zA-Z_0-9]* ;
+SYMBOL:  '`'[a-zA-Z_][a-zA-Z_0-9]* ;
 DOUBLE
     : DIGIT+ '.' DIGIT* ([eE] [+-]? DIGIT+)?     // 123.456, 10., 1.2e3
     | '.' DIGIT+ ([eE] [+-]? DIGIT+)?            // .456, .1e-5

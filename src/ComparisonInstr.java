@@ -21,6 +21,10 @@ public class ComparisonInstr {
                 visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/String", "equals", "(Ljava/lang/Object;)Z", false );
                 visitor.visitJumpInsn(Opcodes.IFEQ, gotoLabel);
                 break;
+            case SYMBOL:
+                visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "quarkruntime/Symbol", "equals", "(Ljava/lang/Object;)Z", false );
+                visitor.visitJumpInsn(Opcodes.IFEQ, gotoLabel); // jump if false (i.e., not equal)
+                break;
             default:
                 break;
         }

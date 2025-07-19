@@ -11,6 +11,7 @@ public class LoadInstr {
                 visitor.visitVarInsn(Opcodes.ILOAD, varInfo.slot);
                 break;
             case STRING:
+            case SYMBOL:
                 visitor.visitVarInsn(Opcodes.ALOAD, varInfo.slot);
                 break;
             case DOUBLE:
@@ -28,6 +29,7 @@ public class LoadInstr {
                 visitor.visitVarInsn(Opcodes.ISTORE, varInfo.slot);
                 break;
             case STRING:
+            case SYMBOL:
                 visitor.visitVarInsn(Opcodes.ASTORE, varInfo.slot);
                 break;
             case DOUBLE:

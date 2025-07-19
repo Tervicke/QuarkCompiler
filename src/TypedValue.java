@@ -2,7 +2,7 @@ import org.objectweb.asm.Type;
 
 public class TypedValue {
     public enum Type{
-        INT , STRING , BOOL , UNKNOWN , VOID , STRUCT , DOUBLE
+        INT , STRING , BOOL , UNKNOWN , VOID , STRUCT , DOUBLE , SYMBOL
     };
 
     public final Type type;
@@ -34,6 +34,8 @@ public class TypedValue {
                 return "void";
             case DOUBLE:
                 return "double";
+            case SYMBOL:
+                return "symbol";
             default:
                 return "unknown";
         }
@@ -50,9 +52,10 @@ public class TypedValue {
                 return Type.VOID;
             case "double":
                 return Type.DOUBLE;
+            case "symbol":
+                return Type.SYMBOL;
             default:
                 return Type.UNKNOWN;
-
         }
     }
     public static TypedValue voidtype() {
@@ -75,6 +78,8 @@ public class TypedValue {
                 return org.objectweb.asm.Type.VOID_TYPE;
             default:
                 return org.objectweb.asm.Type.VOID_TYPE;
+            case SYMBOL:
+                return org.objectweb.asm.Type.getType("Lquarkruntime/Symbol;");
         }
     }
     public String getDescriptorFromType(){
@@ -91,6 +96,9 @@ public class TypedValue {
                 break;
             case VOID:
                 str = "V";
+                break;
+            case SYMBOL:
+                str = "Lquarkruntime/Symbol;";
                 break;
             default:
                 str = "Ljava/lang/Object";
@@ -113,6 +121,9 @@ public class TypedValue {
             case "void":
                 res = "V";
                 break;
+            case "symbol":
+                res = "Lquarkruntime/Symbol;";
+                break;
             default:
                 res = "Ljava/lang/Object";
         };
@@ -130,6 +141,8 @@ public class TypedValue {
                 return Type.DOUBLE;
             case "Ljava/lang/String;":
                 return Type.STRING;
+            case "Lquarkruntime/Symbol;":
+                return Type.SYMBOL;
             default:
                 if (desc.startsWith("L") && desc.endsWith(";")) {
                     return Type.STRUCT;

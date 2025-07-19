@@ -1,12 +1,13 @@
-int x = 10
-
-struct Book {
-    string title
-    int year
+fn getResponse() -> symbol {
+    return `error
 }
 
-Book book("Compilers: Principles, Techniques, and Tools", 1986)
-let [ title , year ] = book
+match getResponse(){
+    `ok => {
+        print("doing something with the data")
+    }
+    `error => {
+        print("some error occured")
+    }
+}
 
-print("Title: ", title)
-print("Year: ", year)

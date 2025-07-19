@@ -24,7 +24,7 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
     //function Id is a special and unique type of Id that is generated in the following way
     //moduleName:functionName:descriptorWithoutReturnType
     //the map stores the functionReturnTypes stores the functionId -> return Type where Type is a ASM type
-    Map<String , Type> functionReturnTypes = new HashMap<>();
+    Map<String , TypedValue.Type> functionReturnTypes = new HashMap<>();
     private Scope scope;
     Map<MethodVisitor , Scope> scopes = new HashMap<>();
 
@@ -90,6 +90,7 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
             "bool" , Type.BOOLEAN_TYPE,
             "String", Type.getType(String.class),
             "string", Type.getType(String.class),
+            "symbol", Type.getType(String.class),
             "void" , Type.VOID_TYPE
     );
     private final Map<Type , String> stringType = Map.of(
@@ -97,7 +98,8 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
              Type.BOOLEAN_TYPE, "bool" ,
              Type.getType(String.class), "string",
              Type.VOID_TYPE , "void",
-            Type.DOUBLE_TYPE, "double"
+            Type.DOUBLE_TYPE, "double",
+            Type.getType("LSymbol") , "symbol"
     );
 
 
@@ -111,21 +113,6 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         //scopes.put();
         scope = new Scope();
         scopes.put(mainVisitor , scope);
-    }
-    public void pushStoreInsAndUpdateSlot(TypedValue.Type type , int slot){
-        if (type == TypedValue.Type.INT) {
-            currentMethodVisitor.visitVarInsn(Opcodes.ISTORE, slot);
-            slot++;
-        } else if (type == TypedValue.Type.STRING) {
-            currentMethodVisitor.visitVarInsn(Opcodes.ASTORE, slot);
-            slot++;
-        } else if (type == TypedValue.Type.BOOL) { //the value will already be loaded for bull
-            currentMethodVisitor.visitVarInsn(Opcodes.ISTORE, slot);
-            slot++;
-        }else if (type == TypedValue.Type.DOUBLE){
-            currentMethodVisitor.visitVarInsn(Opcodes.DSTORE, slot);
-            slot+=2; //two for the slot
-        }
     }
     public void updateStoreIns(TypedValue.Type type , int slot){
         if (type == TypedValue.Type.INT) {
@@ -174,7 +161,6 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
                 scope.putConstant(id , constInfo);
             }else{ //other types , verify the types and push add the value to scope
                 type = visit(ctx.expr());
-                pushStoreInsAndUpdateSlot(type.type , scope.getLastSlot());
                 //convert this to java bytecode
                 if (!TypedValue.typeString(type.type).equals(definedType)) {
                     errorCollector.addError(ctx , "cannot assign " + TypedValue.typeString(type.type) + " to an " + definedType);
@@ -182,6 +168,7 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
                 }
                 TypedValue.Type varType = TypedValue.stringType(ctx.TYPE().getText());
                 VarInfo variableInfo = VarInfo.variable(scope.getLastSlot() , varType);
+                LoadInstr.storeVariable(currentMethodVisitor,variableInfo);
                 scope.putVariable(id,variableInfo);
             }
         }
@@ -452,6 +439,13 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
             double value = Double.parseDouble(text);
             currentMethodVisitor.visitLdcInsn(value);
             return new TypedValue(TypedValue.Type.DOUBLE , value , null);
+        }else if(ctx.SYMBOL() != null){
+            String value = ctx.SYMBOL().getText();
+            currentMethodVisitor.visitTypeInsn(Opcodes.NEW, "quarkruntime/Symbol");         // allocate new object
+            currentMethodVisitor.visitInsn(Opcodes.DUP);                                    // duplicate for constructor
+            currentMethodVisitor.visitLdcInsn(value);                             // push constructor argument
+            currentMethodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, "quarkruntime/Symbol", "<init>", "(Ljava/lang/String;)V", false);  // call constructor
+            return new TypedValue(TypedValue.Type.SYMBOL , value, null);
         }
         return visit(ctx.expr());
     }
@@ -480,6 +474,11 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
                 currentMethodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "print", "(Ljava/lang/String;)V");
             }else if(type.type == TypedValue.Type.DOUBLE){
                 currentMethodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "print", "(D)V");
+            }else if(type.type == TypedValue.Type.SYMBOL){
+                // Get `text` field from Symbol
+                currentMethodVisitor.visitFieldInsn(Opcodes.GETFIELD, "quarkruntime/Symbol", "value", "Ljava/lang/String;");
+                // Call print(String)
+                currentMethodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "print", "(Ljava/lang/String;)V", false);
             }
         }
         currentMethodVisitor.visitFieldInsn(Opcodes.GETSTATIC,"java/lang/System","out","Ljava/io/PrintStream;");
@@ -639,7 +638,7 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         //register the function before traversing the function since doing it later can cause errors in recursion
         //generate the function Id and also push it to the map of return types
         String functionId = makeFunctionId(className , ctx.ID().getText() , descriptor);
-        functionReturnTypes.put(functionId , definedASMReturnType);
+        functionReturnTypes.put(functionId , definedReturnType);
 
 
         MethodVisitor newMethodVisitor = cw.visitMethod(
@@ -724,12 +723,12 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
             errorCollector.addError(ctx,"No function found " + functionName + "() in Module " + moduleName);
             return TypedValue.voidtype();
         }
-        Type returnType = functionReturnTypes.get(functionId);
+        TypedValue.Type returnType = functionReturnTypes.get(functionId);
         Type[] functionArguments = ASMTypeArgs.toArray(new Type[0]);
 
         //get the descriptor with the return value
-        descriptor = Type.getMethodDescriptor(
-                returnType,
+        descriptor =  Type.getMethodDescriptor(
+                TypedValue.TypeTOASMType(returnType),
                 functionArguments
         );
         //invoke the method
@@ -780,9 +779,9 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
             errorCollector.addError(ctx , "function not defined '" + name + "()'");
             return TypedValue.unknowntype();
         }
-        Type returnType = functionReturnTypes.get(functionId);
+        TypedValue.Type returnType = functionReturnTypes.get(functionId);
         descriptor = Type.getMethodDescriptor(
-                returnType,
+                TypedValue.TypeTOASMType(returnType),
                 args
         );
 
@@ -792,9 +791,7 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
                 name,
                 descriptor
         );
-        //converting it to string to convert it to TypedValue.Type org.asm.web -> string -> TypedValue.Type
-        String strType = stringType.get(returnType);
-        return new TypedValue(TypedValue.stringType(strType), null , null);
+        return new TypedValue(returnType, null , null);
     }
 
     @Override
@@ -807,6 +804,10 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
                 currentMethodVisitor.visitInsn(Opcodes.IRETURN); //
             }else if(type.type == TypedValue.Type.STRING){
                 currentMethodVisitor.visitInsn(Opcodes.ARETURN); //  ref return
+            }else if(type.type == TypedValue.Type.DOUBLE){
+                currentMethodVisitor.visitInsn(Opcodes.DRETURN);
+            }else if(type.type == TypedValue.Type.SYMBOL){
+                currentMethodVisitor.visitInsn(Opcodes.ARETURN);
             }else{
                 errorCollector.addError(ctx , "Unknown value returned");
             }
@@ -827,7 +828,7 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
 
         //get the functionId map from the ModuleInfoExtractor
         try {
-            Map<String, Type> result;
+            Map<String, TypedValue.Type> result;
             if(STANDARDLIBRARY.contains(moduleName)){
                 result = ModuleInfoExtractor.extractInfoFromClass(moduleName , true);
             }else{
@@ -1021,6 +1022,7 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
     public TypedValue visitPatternmatchstat(QuarkParser.PatternmatchstatContext ctx) {
         //first differentitate if u are trying to match a literal or a struct
         Label endLabel = new Label();
+        TypedValue type;
         String ID= ctx.ID().getText(); //the ID that is supposed to matched
         if(scope.containsStruct(ID)){
             matchStruct(ctx , endLabel);
@@ -1039,7 +1041,6 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
         String ID= ctx.ID().getText(); //the ID that is supposed to matched
         VarInfo idInfo = scope.getVariable(ID);
         boolean wildcardMatched = false;
-        //pop of the value for easier maintaince , we only push it to the stack when we need it in the arms later on
         for(var arm : ctx.matcharms()){ //loop through each and every match arm and detect if they can be matched
             var pattern = arm.pattern();
             Label nextArmLabel = new Label();
