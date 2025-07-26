@@ -86,11 +86,14 @@ public class Main{
             mv.visitEnd();
             cw.visitEnd();
 
+            //if there are errors report them and exit
             if (visitor.errorCollector.hasErrors()) {
                 visitor.errorCollector.reportAll();
                 System.out.println("Error occured when compiling " + inputPath.toString());
-                continue;
+                System.exit(1);
             }
+
+            //assuming no errors , report warninging if any
             if(visitor.errorCollector.hasWarnings()){
                 visitor.errorCollector.reportAll();
             }

@@ -18,3 +18,6 @@ antlr:
 
 grun:
 	@java -cp "build:jars/antlr-4.11.1-complete.jar" org.antlr.v4.gui.TestRig Quark prog -gui
+
+update-lab:
+	cp dist/Quark.jar QuarkLab/

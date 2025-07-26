@@ -397,8 +397,17 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
             currentMethodVisitor.visitLdcInsn(str);
             return new TypedValue(TypedValue.Type.STRING, str , null);
         } else if (ctx.ID() != null) {
-            isPatternMatchModeVariable = true;
             String id = ctx.ID().getText();
+            if(scope.containsStruct(id) == false && scope.containsKey(id) == false){
+                if(isPatternMatchMode){
+                    patternMatchedExitingVar = false; //doesnt exist also no need to throw error
+                    patternMatchedVariableName = id; // update the name since it will be used in the patterm matcher to bind
+                }else{
+                    errorCollector.addError( ctx , "Not recognized '" + ctx.ID() + "'");
+                }
+                return TypedValue.unknowntype();
+            }
+
             //check for local variable
             if (scope.containsKey(id)) {
                 VarInfo info = scope.getVariable(id);
@@ -406,25 +415,15 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
                 patternMatchedExitingVar = true;
                 return new TypedValue(info.type, null , id);
             }
+
             //check for struct
-            if(scope.containsStruct(id)){
+            else if(scope.containsStruct(id)){
                 //if it exits , load the struct onto the stack , for either printing or using it further somewhere
                 var info = scope.getStructInfo(id);
                 LoadInstr.LoadStruct(currentMethodVisitor, info);
                 patternMatchedExitingVar = true;
                 return new TypedValue(TypedValue.Type.STRUCT, null , info.name , id); //return the struct name as id in the type
             }
-
-            //dintinguish between pattern matching visits
-
-            if(isPatternMatchMode){
-                patternMatchedExitingVar = false; //doesnt exist also no need to throw error
-                patternMatchedVariableName = id; // update the name since it will be used in the patterm matcher to bind
-            }else{
-                errorCollector.addError( ctx , "Not recognized '" + ctx.ID() + "'");
-            }
-
-            return TypedValue.unknowntype();
 
         } else if (ctx.TRUE() != null) {
             currentMethodVisitor.visitInsn(Opcodes.ICONST_1);
@@ -479,6 +478,9 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
                 currentMethodVisitor.visitFieldInsn(Opcodes.GETFIELD, "quarkruntime/Symbol", "value", "Ljava/lang/String;");
                 // Call print(String)
                 currentMethodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "print", "(Ljava/lang/String;)V", false);
+            }else{
+                //if unknwown type pop the already used system.out
+                currentMethodVisitor.visitInsn(Opcodes.POP);
             }
         }
         currentMethodVisitor.visitFieldInsn(Opcodes.GETSTATIC,"java/lang/System","out","Ljava/io/PrintStream;");

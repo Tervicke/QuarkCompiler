@@ -1,0 +1,12 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="quarkc:jar">
+    <output-path>$PROJECT_DIR$/dist</output-path>
+    <root id="archive" name="Quark.jar">
+      <element id="module-output" name="Quark" />
+      <element id="dir-copy" path="$PROJECT_DIR$/std" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/jars/antlr-4.11.1-complete.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/jars/asm-9.8.jar" path-in-jar="/" />
+      <element id="dir-copy" path="$PROJECT_DIR$" />
+    </root>
+  </artifact>
+</component>

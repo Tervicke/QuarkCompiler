@@ -1,13 +1,6 @@
-fn getResponse() -> symbol {
-    return `error
+print("Welcome to Quark")
+i=0
+while (i<5){
+    print("Quark")
+    i=i+1
 }
-
-match getResponse(){
-    `ok => {
-        print("doing something with the data")
-    }
-    `error => {
-        print("some error occured")
-    }
-}
-

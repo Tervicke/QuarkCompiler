@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>QuarkLab</title>
+	<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+</head>
+<body>
+  <div id="container">
+    <div id="controls">
+			<div id="headerTitle">QuarkLab</div>
+      <button id="runBtn">Run</button>
+    </div>
+
+    <div class="main-container">
+      <div id="editor"></div>
+
+      <div class="right-panel">
+        <div class="tabs">
+          <button class="tab-button active" data-target="output">Output</button>
+          <button class="tab-button" data-target="bytecode">Bytecode</button>
+        </div>
+
+        <div class="tab-content-container">
+          <div id="output" class="tab-content visible"> Output will appear here</div>
+          <div id="bytecode" class="tab-content"> Bytecode will appear here</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+	<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
