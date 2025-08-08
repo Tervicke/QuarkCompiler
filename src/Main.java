@@ -55,13 +55,32 @@ public class Main{
             String className = fileName.replaceFirst("\\.quark$", "");             // "fib"
             Path outputPath = inputPath.resolveSibling(className + ".class");      // "examples/fib.class"
 
-
-            //setup antlr parser
             CharStream input = CharStreams.fromPath(inputPath);
             QuarkLexer lexer = new QuarkLexer(input);
+
+            MyErrorListener myErrorListener = new MyErrorListener();
+
+            // ❗ Remove default error listeners from lexer and add custom
+            lexer.removeErrorListeners();
+            lexer.addErrorListener(myErrorListener);
+
             CommonTokenStream tokens = new CommonTokenStream(lexer);
+
             QuarkParser parser = new QuarkParser(tokens);
+
+            // ❗ Remove default error listeners from parser and add custom
+            parser.removeErrorListeners();
+            parser.addErrorListener(myErrorListener);
+
+
             ParseTree tree = parser.prog();
+
+            // Stop codegen/semantic analysis if errors
+            if (myErrorListener.hasErrors()) {
+                System.out.println("exiting");
+            }
+
+            // Trigger parsing
 
             //generate the classWriter cw
             ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
@@ -149,15 +168,29 @@ public class Main{
 
             String module = stack.pop();
             if (visited.contains(module)) continue;
-            visited.add(module);
-
 
             Path filePath = Path.of(module + ".quark");
             CharStream input = CharStreams.fromPath(filePath);
+
+            MyErrorListener myErrorListener = new MyErrorListener();
+
             QuarkLexer lexer = new QuarkLexer(input);
+            lexer.removeErrorListeners();
+            lexer.addErrorListener(myErrorListener);
+
             CommonTokenStream tokens = new CommonTokenStream(lexer);
+
             QuarkParser parser = new QuarkParser(tokens);
+            parser.removeErrorListeners();
+            parser.addErrorListener(myErrorListener);
             ParseTree tree = parser.prog();
+
+            //continue and skip the file and not add it in the visited
+            if(myErrorListener.hasErrors()){
+                continue;
+            }
+
+            visited.add(module);
             ImportCollector collector = new ImportCollector();
 
             collector.visit(tree);
