@@ -31,7 +31,11 @@ cd examples
 java structs 
 ```
 ## see more [examples](examples/) 
-
+## Tests
+The tests are stored in the [json file](tests/tests.json) , u can run the tests by running the [python file](tests/run_tests.py) file.  
+```
+python3 run_tests.py
+```
 ## features 
 ---
 
