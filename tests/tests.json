@@ -1,0 +1,12 @@
+[
+  {
+    "name": "Basic Hello World",
+    "input": "helloworld.quark",
+    "expected_output_file": "expected/helloworld.txt"
+	},
+  {
+    "name": "missing bracket",
+    "input": "missing_bracket.quark",
+    "error": "[ERROR] Line 2:1 missing ')' at '<EOF>'"
+  }
+]

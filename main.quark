@@ -1,6 +1,1 @@
-print("Welcome to Quark")
-i=0
-while (i<5){
-    print("Quark")
-    i=i+1
-}
+print("Welcome to Quark"
