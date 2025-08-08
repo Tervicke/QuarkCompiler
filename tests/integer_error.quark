@@ -1,0 +1,13 @@
+//assigment errors
+int x = "hel"
+int x = 3.14
+int x = false
+
+//assig variables error
+string str = "hello"
+bool b = false
+double f = 3.14
+
+int x = str
+int x = b
+int x = f

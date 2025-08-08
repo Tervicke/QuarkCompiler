@@ -14,8 +14,9 @@ def run_test(test):
     )
 
     # Check for error test
-    if "error" in test:
-        error_expected = test["error"]
+    if "error_file" in test:
+        with open(test['error_file']) as f:
+            error_expected = f.read().strip()
         stderr = compile_proc.stderr.strip()
         if error_expected in stderr:
             print("✅ Error matched")

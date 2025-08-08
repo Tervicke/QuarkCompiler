@@ -1,0 +1,8 @@
+int p = 42
+int n = -1
+print(p)
+print(n)
+int expr = 3 * 45 + 15 
+print(expr)
+expr = 3 * (45 + 15)
+print(expr)

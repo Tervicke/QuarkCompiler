@@ -3,10 +3,25 @@
     "name": "Basic Hello World",
     "input": "helloworld.quark",
     "expected_output_file": "expected/helloworld.txt"
-	},
+  },
   {
     "name": "missing bracket",
     "input": "missing_bracket.quark",
-    "error": "[ERROR] Line 2:1 missing ')' at '<EOF>'"
+    "error_file": "expected/missing_bracket.txt"
+  },
+  {
+    "name": "missing quote",
+    "input": "missing_quote.quark",
+    "error_file": "expected/missing_quote.txt"
+  },
+  {
+    "name": "integer",
+    "input": "integer.quark",
+    "expected_output_file": "expected/integer.txt"
+  },
+  {
+    "name": "integer error",
+    "input": "integer_error.quark",
+    "error_file": "expected/integer_error.txt"
   }
 ]

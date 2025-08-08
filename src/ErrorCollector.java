@@ -13,7 +13,7 @@ public class ErrorCollector {
         errors.add(errorLog);
     }
     public void printError(String message) {
-        System.out.println("\u001B[31m" + message + "\u001B[0m");
+        System.err.println("\u001B[31m" + message + "\u001B[0m");
     }
     public void reportAll(){
         for (String errorLog : errors) {

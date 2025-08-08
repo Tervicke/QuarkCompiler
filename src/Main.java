@@ -77,7 +77,7 @@ public class Main{
 
             // Stop codegen/semantic analysis if errors
             if (myErrorListener.hasErrors()) {
-                System.out.println("exiting");
+                System.exit(1);
             }
 
             // Trigger parsing
@@ -108,7 +108,6 @@ public class Main{
             //if there are errors report them and exit
             if (visitor.errorCollector.hasErrors()) {
                 visitor.errorCollector.reportAll();
-                System.out.println("Error occured when compiling " + inputPath.toString());
                 System.exit(1);
             }
 

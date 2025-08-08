@@ -1,0 +1,6 @@
+[31m[ERROR] Line 2:1 cannot assign string to an int[0m
+[31m[ERROR] Line 3:1 cannot assign double to an int[0m
+[31m[ERROR] Line 4:1 cannot assign bool to an int[0m
+[31m[ERROR] Line 11:1 cannot assign string to an int[0m
+[31m[ERROR] Line 12:1 cannot assign bool to an int[0m
+[31m[ERROR] Line 13:1 cannot assign double to an int[0m
