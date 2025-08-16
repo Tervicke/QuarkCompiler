@@ -410,10 +410,17 @@ public class Quark extends QuarkBaseVisitor<TypedValue> {
 
             //check for local variable
             if (scope.containsKey(id)) {
+                //load different instructions if the id is a constant
                 VarInfo info = scope.getVariable(id);
-                LoadInstr.LoadVariable(currentMethodVisitor , info);
-                patternMatchedExitingVar = true;
-                return new TypedValue(info.type, null , id);
+                if(scope.isConstant(id)){
+                    LoadInstr.LoadConstant(currentMethodVisitor , info);
+                    patternMatchedExitingVar = true;
+                    return new TypedValue(info.type, info.constValue, id); //returning const value
+                }else{
+                    LoadInstr.LoadVariable(currentMethodVisitor , info);
+                    patternMatchedExitingVar = true;
+                    return new TypedValue(info.type, null , id); //returning null since dont know what is the value
+                }
             }
 
             //check for struct

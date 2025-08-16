@@ -18,6 +18,22 @@ public class LoadInstr {
                 visitor.visitVarInsn(Opcodes.DLOAD, varInfo.slot);
         }
     }
+
+    public static void LoadConstant(MethodVisitor visitor , VarInfo varInfo) {
+        switch (varInfo.type){
+            case INT:
+            case BOOL:
+                visitor.visitLdcInsn(varInfo.constValue);
+                break;
+            case STRING:
+            case SYMBOL:
+                visitor.visitLdcInsn(varInfo.constValue);
+                break;
+            case DOUBLE:
+                visitor.visitLdcInsn(varInfo.constValue);
+                break;
+        }
+    }
     public static void LoadStruct(MethodVisitor visitor , StructInfo structInfo){
         visitor.visitVarInsn(Opcodes.ALOAD,structInfo.slot); //load the instance of the object onto the stack
     }
