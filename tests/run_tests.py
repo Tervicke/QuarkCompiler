@@ -2,6 +2,7 @@ import subprocess
 import json
 import os
 import sys
+import glob
 
 def run_test(test):
     input_file = test["input"]
@@ -34,7 +35,7 @@ def run_test(test):
     output_class_name = test["input"].split('.')[0]
 
     run_proc = subprocess.run(
-        ["java" , output_class_name],
+        ["java", output_class_name],
         capture_output=True,
         text=True
     )
@@ -58,6 +59,11 @@ def main():
             passed += 1
 
     print(f"\nPassed {passed}/{len(tests)} tests")
+
+    # --- Cleanup: remove all .class files ---
+    for class_file in glob.glob("*.class"):
+        os.remove(class_file)
+    print("Cleaned up generated .class files")
 
 if __name__ == "__main__":
     main()
