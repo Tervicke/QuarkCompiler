@@ -23,5 +23,15 @@
     "name": "integer error",
     "input": "integer_error.quark",
     "error_file": "expected/integer_error.txt"
+  },
+  {
+    "name": "constant",
+    "input": "constant.quark",
+    "expected_output_file": "expected/constant.txt"
+  },
+  {
+    "name":"constant error",
+    "input": "constant_error",
+    "error_file": "expected/constant_error.txt"
   }
 ]

@@ -1,0 +1,8 @@
+const integer = 42
+print(integer)
+
+const str = "helloworld"
+print(str)
+
+const d = 56.900
+print(d)

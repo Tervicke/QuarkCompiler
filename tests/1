@@ -1,0 +1,3 @@
+[31m[ERROR] Line 2:1 cannot update 'integer' declared as a constant [0m
+[31m[ERROR] Line 5:1 cannot update 'str' declared as a constant [0m
+[31m[ERROR] Line 8:1 cannot update 'd' declared as a constant [0m

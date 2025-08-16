@@ -1,0 +1,6 @@
+string str = "hello"
+print(str)
+str = "heyy"
+print(str)
+str = "hey" + "hey"
+print(str)

@@ -1,0 +1,8 @@
+const integer = 42
+integer = 56
+
+const str = "helloworld"
+str = "h"
+
+const d = 56.900
+d = 6.2

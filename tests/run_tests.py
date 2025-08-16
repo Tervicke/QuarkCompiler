@@ -2,6 +2,7 @@ import subprocess
 import json
 import os
 import sys
+
 def run_test(test):
     input_file = test["input"]
     name = test["name"]
@@ -19,10 +20,10 @@ def run_test(test):
             error_expected = f.read().strip()
         stderr = compile_proc.stderr.strip()
         if error_expected in stderr:
-            print("✅ Error matched")
+            print("[OK] Error matched")
             return True
         else:
-            print(f"❌ Error mismatch\nExpected: {error_expected}\nGot: {stderr}")
+            print(f"[FAIL] Error mismatch\nExpected: {error_expected}\nGot: {stderr}")
             return False
 
     # Step 2: If no error expected, run the output .class file
@@ -41,10 +42,10 @@ def run_test(test):
     actual_output = run_proc.stdout.strip()
 
     if expected_output == actual_output:
-        print("✅ Output matched")
+        print("[OK] Output matched")
         return True
     else:
-        print(f"❌ Output mismatch\nExpected:\n{expected_output}\nGot:\n{actual_output}")
+        print(f"[FAIL] Output mismatch\nExpected:\n{expected_output}\nGot:\n{actual_output}")
         return False
 
 def main():
@@ -60,4 +61,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
